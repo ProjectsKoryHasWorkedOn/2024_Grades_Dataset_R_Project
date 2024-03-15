@@ -1,3 +1,9 @@
-Windows dependencies
-Rtools v4.3. Can install it from here:
-  http://cran.r-project.org/bin/windows/Rtools
+Dependencies
+
+Latest stable version of R (v4.3.3)
+
+https://cran.r-project.org/bin/windows/base/
+
+Latest version of RStudio Desktop (2023.12.1)
+
+https://posit.co/download/rstudio-desktop/
