@@ -34,15 +34,16 @@ query
 df <- as.data.frame(dbConnection$find(query))
 head(df)
 
+student_id_vector <- as.integer(unlist(df$student_id))
 
-scatter1 <- ggplot(data = df, mapping = aes(x="homework", y="score")) + geom_point(color="lightblue") + 
-  geom_point()  + theme(axis.title.x=element_text(), axis.text.x=element_text())
-scatter2 <- ggplot(data = df, mapping = aes(x="exam", y="score")) + geom_point(color="lightblue") + 
+
+scores_vector <- as.integer(unlist(df$scores))
+
+MISSING <- is.na(scores_vector)
+scores_vector_no_na <- subset(scores_vector, 
+                              subset = !MISSING)
+
+scores_vector_no_na
+
+ggplot(mapping = aes(x = student_id_vector, y = scores_vector))  + 
   geom_point()
-scatter3 <- ggplot(data = df, mapping = aes(x="quiz", y="score")) + geom_point(color="lightblue") + 
-  geom_point()
-
-
-
-
-
