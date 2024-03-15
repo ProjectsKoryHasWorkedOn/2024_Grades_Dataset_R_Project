@@ -2,6 +2,10 @@
 
 #Load in libraries
 library(mongolite)
+library(ggplot2)
+library(cowplot)
+
+
 
 #Connect to Mongo DB
 connection_string = 'mongodb+srv://fran0618:WhwdV2u7cMmUJuDj@comp2031-8031.hfcmwd0.mongodb.net/?retryWrites=true&w=majority&appName=COMP2031-8031' # Kory's connection string
@@ -18,12 +22,27 @@ dbConnection$iterate()$one() # iterate through elements by increments of one
   # ...
 # 'student_id'
 
-# Getting data from DB
+# Getting specific data from DB. 
 query<-list()
-query[["student_id"]][["$gt"]] <- 1
-query <- jsonlite::toJSON(query, auto_unbox = TRUE)
+# query[["student_id"]][["$gt"]] <- 0 # {all student IDs}
+query[["student_id"]] <- 0 # {student id of 0}
+query[["class_id"]] <- 339 # {class id of 339}
+query <- jsonlite::toJSON(query, auto_unbox = TRUE) # Convert this to JSON format
 query
-dbConnection$find(query)
+
+# Putting this data into a data frame
+df <- as.data.frame(dbConnection$find(query))
+head(df)
+
+
+scatter1 <- ggplot(data = df, mapping = aes(x="homework", y="score")) + geom_point(color="lightblue") + 
+  geom_point()  + theme(axis.title.x=element_text(), axis.text.x=element_text())
+scatter2 <- ggplot(data = df, mapping = aes(x="exam", y="score")) + geom_point(color="lightblue") + 
+  geom_point()
+scatter3 <- ggplot(data = df, mapping = aes(x="quiz", y="score")) + geom_point(color="lightblue") + 
+  geom_point()
+
+
 
 
 
