@@ -2,10 +2,8 @@
 
 #Load in libraries
 library(mongolite)
-library(ggplot2)
+library(tidyverse) # contains ggplot, etc.
 library(cowplot)
-
-
 
 #Connect to Mongo DB
 connection_string = 'mongodb+srv://fran0618:WhwdV2u7cMmUJuDj@comp2031-8031.hfcmwd0.mongodb.net/?retryWrites=true&w=majority&appName=COMP2031-8031' # Kory's connection string
