@@ -45,3 +45,10 @@ scores_vector_no_na
 
 ggplot(mapping = aes(x = student_id_vector, y = scores_vector))  + 
   geom_point()
+
+
+
+# Performing some basic calculations
+mean(scores_vector_no_na)
+median(scores_vector_no_na)
+
