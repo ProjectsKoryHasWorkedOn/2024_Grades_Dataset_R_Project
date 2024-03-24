@@ -1,8 +1,6 @@
 #R libraries
 
 #Install R libraries if not installed
-hello <- "hello"
-hello
 
 #Search for "mongolite" package and install if not installed
 mongolite <- find.package("mongolite", quiet = TRUE)
@@ -18,22 +16,17 @@ if(!tidyplot_installed){
   install.packages("tidyverse", dependencies=T)
 }
 
-#Search for "cowplot" package and install if not installed
-cowplot <- find.package("cowplot", quiet = TRUE)
-cowplot_installed <- ifelse((nchar(cowplot) == 0),FALSE,TRUE)
-if(!cowplot_installed){
-  install.packages("cowplot")
-}
-
-#Search for "aoos" package and install if not installed
-aoos <- find.package("aoos", quiet = TRUE)
-aoos_installed <- ifelse((nchar(aoos) == 0),FALSE,TRUE)
-if(!aoos_installed){
-  install.packages("aoos")
+#Search for "R6" package and install if not installed
+r6 <- find.package("R6", quiet = TRUE)
+r6_installed <- ifelse((nchar(r6) == 0),FALSE,TRUE)
+if(!r6_installed){
+  install.packages("R6")
 }
 
 #Load in R libraries
 library(mongolite)
 library(tidyverse) # contains ggplot, etc.
-library(cowplot)
-library(aoos)
+library(R6)
+
+
+
