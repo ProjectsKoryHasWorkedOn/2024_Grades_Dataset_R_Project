@@ -11,30 +11,46 @@ source(file=paste(getwd(),"/r_project.R", sep=""))
 
 
 
-```{r mongo_db_analysis, include=TRUE, echo=TRUE}
-MyDataAnalyzer$returnNumberOfMissingValues()
-MyDataAnalyzer$returnNumberOfRows()
+Graph showing a symmetrical distribution of marks
 
-MyDataAnalyzer$returnMean()
-MyDataAnalyzer$returnMedian()
-MyDataAnalyzer$returnMaximum()
-MyDataAnalyzer$returnMinimum()
-MyDataAnalyzer$returnMedian()
-MyDataAnalyzer$return1stQuartile()
-MyDataAnalyzer$return3rdQuartile()
-MyDataAnalyzer$returnStandardDeviation()
-MyDataAnalyzer$returnZScore()
-
-
-```
 
 ```{r mongo_db_visualization, include=TRUE, echo=TRUE}
-MyDataVisualizer$graphScatterPlot(mongoDBDataset$class_id, mongoDBDataset$score)
-
-
-MyDataVisualizer$graphHistogram(mongoDBDataset$score, 6, c(rep("red", 1), rep("orange", 2), rep("lightgreen", 2), rep("darkgreen", 1)), "Where students grades lie", "grade", "grade count")
+MGDBDataVisualizer$graphHistogram(mongoDBDataset$score, 6, c(rep("red", 1), rep("mistyrose", 2), rep("honeydew", 2), rep("green", 1)), "Where students grades lie", "grade", "grade count")
 ```
 
+
+
+Graph showing the average scores for all student in a specific class and where the grades of a lied among all students
+
+
+```{r mongo_db_visualization, include=TRUE, echo=TRUE}
+MGDBDataVisualizer$graphScatterPlot(mongoDBDataset$class_id, mongoDBDataset$score)
+```
+
+
+
+
+```{r mongo_db_analysis, include=TRUE, echo=TRUE}
+MGDBDataAnalyzer$returnNumberOfMissingValues()
+MGDBDataAnalyzer$returnNumberOfRows()
+
+MGDBDataAnalyzer$returnMean()
+MGDBDataAnalyzer$returnMedian()
+MGDBDataAnalyzer$returnMaximum()
+MGDBDataAnalyzer$returnMinimum()
+MGDBDataAnalyzer$returnMedian()
+MGDBDataAnalyzer$return1stQuartile()
+MGDBDataAnalyzer$return3rdQuartile()
+MGDBDataAnalyzer$returnStandardDeviation()
+MGDBDataAnalyzer$returnZScore()
+
+```
+
+
+
+```{r mongo_db_analysis, include=TRUE, echo=TRUE}
+
+```
 
 
 

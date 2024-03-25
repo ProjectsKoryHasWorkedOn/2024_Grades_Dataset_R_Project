@@ -23,10 +23,19 @@ if(!r6_installed){
   install.packages("R6")
 }
 
+#Search for "sqldf" package and install if not installed
+sqldf <- find.package("sqldf", quiet = TRUE)
+sqldf_installed <- ifelse((nchar(sqldf) == 0),FALSE,TRUE)
+if(!sqldf_installed){
+  install.packages("sqldf")
+}
+
+
 #Load in R libraries
 library(mongolite)
 library(tidyverse) # contains ggplot, etc.
 library(R6)
+library(sqldf)
 
 
 

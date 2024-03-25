@@ -313,6 +313,44 @@ DataViewer <- R6Class("DataViewer",
 )
 
 
+DataSubsetter <- R6Class("DataSubsetter",
+                      
+                      public = list(
+                        setDatasetAndDatasetName = function(ds = NA) {
+                          private$dataset <- ds
+                        },
+                        
+                        setQuery = function(query = NA){
+                          private$query <- query
+                        },
+                        
+                        outputQuery = function(){
+                          sqldf(private$query)
+                        },
+                        
+                        returnQueryResult = function(colNamesArg){
+                          returnValue <- sqldf(private$query)
+                          rownames(returnValue) <- NULL
+                          colnames(returnValue) <- colNamesArg
+                        
+                            
+                            
+                          
+                          
+                          return(returnValue)
+                        }
+                        
+                        
+                      ),
+                      
+                      private = list(
+                        dataset = NULL,
+                        query = NULL
+                      )
+                      
+)
+
+
 
 
 DataVisualizer <- R6Class("DataVisualizer",
@@ -343,3 +381,16 @@ DataVisualizer <- R6Class("DataVisualizer",
                       )
                       
 )
+
+
+
+
+
+
+
+
+
+
+
+
+
