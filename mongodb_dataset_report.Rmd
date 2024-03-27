@@ -1,0 +1,70 @@
+---
+title: "Data engineering assignment"
+subtitle: 'MongoDB dataset report'
+author: "Kory"
+output: word_document
+date: "2024-03-24"
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+source(file=paste(getwd(),"/mongodb_dataset_main", sep="")) 
+```
+
+# Mongo DB dataset
+## Looking at the entire dataset
+```{r report_export_01, include=TRUE, echo=FALSE}
+paste("number of missing values in entire dataset: ", export_01_0001, sep = "")
+```
+There are no missing values in this dataset
+
+
+```{r report_export_02, include=TRUE, echo=FALSE}
+export_02_0001
+export_02_0002
+
+paste("the range of scores (difference between the min and max scores): ", diff(export_02_0003), sep = "")
+
+
+```
+
+There are 400,000 rows and 4 columns in total
+
+  * There are 10,000 students with a unique student ID 
+  * There are 501 classes with a unique class ID 
+  * There are 3 assignment types, which is as we'd expect
+  * There are 400,000 unique scores, which is unexpected but makes sense as there are at least 7 decimal places in the scores, which range from ~ 0 to ~ 100. There'd be less unique scores if the score values were integers
+
+```{r report_export_03, include=TRUE, echo=FALSE}
+paste("mean: ", export_03_0001, sep = "")
+paste("median: ", export_03_0002, sep = "")
+paste("maximum: ", export_03_0003, sep = "")
+paste("minimum: ", export_03_0004, sep = "")
+paste("1st quartile: ", export_03_0005, sep = "")
+paste("3rd quartile: ", export_03_0006, sep = "")
+paste("standard deviation: ", export_03_0007, sep = "")
+```
+
+For all the scores in the dataset, we can derive the mean, median, minimum, maximum, 1st quartile, 3rd quartile, and standard deviation values
+
+
+```{r report_export_04, include=TRUE, echo=FALSE}
+export_04_0001
+```
+
+
+We can also show the distribution of scores for all of the assignments (quiz, exam, homework) that students have ever done
+
+## Looking at subsets of the dataset
+
+
+```{r report_export_05, include=TRUE, echo=FALSE}
+export_05_0001
+```
+
+We can look up a student (e.g. the student with a 'student_id' of 1) and see how well that student has done compared to other students enrolled in the same classes. 
+
+  * To calculate the score each student achieved in each of their classes, an average of all of their scores for all of the assessment items in that class was used.
+  * To calculate the class average for each class, an average of all of the average scores a student received for each class was used
+  * To calculate quartile 1 and 3 values, I obtained the value at the 25% and 75% percentile for all of the average scores a student received for each class
+
+
