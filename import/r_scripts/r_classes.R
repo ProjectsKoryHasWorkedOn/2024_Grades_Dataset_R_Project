@@ -52,7 +52,7 @@ DataLoader <- R6Class(
     
     storeDataFromCSVFile = function(csvFilename = NA) {
       # Read the file in as a tibble since that's more efficient that reading it in as a dataframe then converting it to a tibble
-      private$dataset <- read_csv(file = csvFilename, show_col_types = FALSE)
+      private$dataset <- read_csv(file = csvFilename, show_col_types = FALSE, trim_ws = TRUE)
     },
     
     
@@ -113,10 +113,8 @@ DataTransformer <- R6Class(
       private$dataset = subset(private$dataset, select = -c(colsToRemoveArg))
     },
     
-    correctAges = function(colToCheckArg = NA){
-      # private$dataset[colToCheckArg] <- gsub(">=", " or older", private$dataset[colToCheckArg])
-      # private$dataset[colToCheckArg] <- gsub("-", " to ", private$dataset[colToCheckArg])
-      private$dataset[colToCheckArg] <- gsub("55<=", " 55 or older", private$dataset[colToCheckArg])
+    correctAges = function(colToCheckArg = NA, numberOfTimesToRunFor = NA){
+      private$dataset[colToCheckArg] <- gsub("55<=", ">55", private$dataset[colToCheckArg], perl = TRUE)
     },
     
     returnDataset = function() {
