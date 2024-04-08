@@ -1,7 +1,0 @@
----
-title: "Data engineering assignment"
-subtitle: 'OULAD dataset report - part 2'
-author: "Kory"
-output: word_document
-date: "2024-03-24"
----
