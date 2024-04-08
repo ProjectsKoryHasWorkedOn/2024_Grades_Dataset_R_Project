@@ -1,0 +1,33 @@
+---
+title: "Data engineering assignment"
+subtitle: 'OULAD dataset code exports for the report'
+author: "Kory"
+output: word_document
+date: "2024-03-24"
+---
+
+```{r setup, include=FALSE, echo=FALSE}
+source(file=paste(getwd(),"/oulad_dataset_code_part_1.R", sep="")) 
+```
+
+```{r export_001, include=TRUE, echo=FALSE}
+whatUniqueValuesWeHaveInIMDBand
+```
+
+```{r export_002, include=TRUE, echo=FALSE}
+whatAreTheNamesOfTheseRegions
+whatIsTheNumberOfTheseRegions
+```
+
+```{r export_003, include=TRUE, echo=FALSE}
+mostCommonOnes
+```
+
+```{r export_004, include=TRUE, echo=FALSE}
+wereDuplicateAssessmentIDsFound
+wereDuplicateVLEMaterialIDsFound
+```
+
+```{r export_005, include=TRUE, echo=FALSE}
+numberOfRowsThatShare4IDS
+```

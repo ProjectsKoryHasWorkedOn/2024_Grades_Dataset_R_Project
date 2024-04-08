@@ -4,9 +4,24 @@
 
 https://cran.r-project.org/bin/windows/base/
 
+
+Note that v4.3.2 and v.4.4.0 does not work with one's libraries
+
 **Latest version of RStudio Desktop (2023.12.1)**
 
 https://posit.co/download/rstudio-desktop/
+
+# Troubleshooting steps that worked for me when one's working code stopped working
+
+Fix A:
+
+1. Delete .Rhistory file
+1. Delete .Rdata file
+1. Reload the session
+
+Fix B:
+
+1. Option > Tools > Untick "Restore .RData into workplace at startup"
 
 
 # Files used to help make the final report, which can be found in `documentation > r_project_report`
