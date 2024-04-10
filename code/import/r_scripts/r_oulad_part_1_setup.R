@@ -8,8 +8,10 @@ OULADDataViewer <- DataViewer$new()
 OULADDataVisualizer <- DataVisualizer$new()
 OULADDataModeler <- DataModeler$new()
 OULADDataSupersetter <- DataSupersetter$new()
+OULADDataChecker <- DataChecker$new()
+OULADDataSubsetter <- DataSubsetter$new()
+OULADDataExporter <- DataExporter$new()
 # --
-
 
 # -- Declaration of the names of the CSV files and folder 
 csvDirectory <- paste(getwd(), "/import/csv/", sep = "")
@@ -27,9 +29,12 @@ csvFileNames <-
 # --
 
 
-# -- Data wrangling
+# -- Data loading in
 OULADDataLoader$storeDataFromCSVFile(paste(csvDirectory, csvFileNames[1], sep = ""))
-OULADDataLoader$setNamesOfColumns(
+assessmentsTable <-OULADDataLoader$returnDataset()
+
+OULADDataCleaner$setDataset(assessmentsTable)
+OULADDataCleaner$setNamesOfColumns(
   c(
     "module_id",
     "presentation_id",
@@ -39,20 +44,24 @@ OULADDataLoader$setNamesOfColumns(
     "assessment_weight"
   )
 )
-assessmentsTable <- OULADDataLoader$returnDataset()
+assessmentsTable <- OULADDataCleaner$returnDataset()
 # view(assessmentsTable)
 
 OULADDataLoader$storeDataFromCSVFile(paste(csvDirectory, csvFileNames[2], sep = ""))
-OULADDataLoader$setNamesOfColumns(c(
+coursesTable <- OULADDataLoader$returnDataset()
+OULADDataCleaner$setDataset(coursesTable)
+OULADDataCleaner$setNamesOfColumns(c(
   "module_id",
   "presentation_id",
   "module_days_it_goes_for"
 ))
-coursesTable <- OULADDataLoader$returnDataset()
+coursesTable <- OULADDataCleaner$returnDataset()
 # view(coursesTable)
 
 OULADDataLoader$storeDataFromCSVFile(paste(csvDirectory, csvFileNames[3], sep = ""))
-OULADDataLoader$setNamesOfColumns(
+studentAssessmentTable <- OULADDataLoader$returnDataset()
+OULADDataCleaner$setDataset(studentAssessmentTable)
+OULADDataCleaner$setNamesOfColumns(
   c(
     "assessment_id",
     "student_id",
@@ -62,11 +71,13 @@ OULADDataLoader$setNamesOfColumns(
   )
 )
 
-studentAssessmentTable <- OULADDataLoader$returnDataset()
+studentAssessmentTable <- OULADDataCleaner$returnDataset()
 # view(studentAssessmentTable)
 
 OULADDataLoader$storeDataFromCSVFile(paste(csvDirectory, csvFileNames[4], sep = ""))
-OULADDataLoader$setNamesOfColumns(
+studentInfoTable <- OULADDataLoader$returnDataset()
+OULADDataCleaner$setDataset(studentInfoTable)
+OULADDataCleaner$setNamesOfColumns(
   c(
     "module_id",
     "presentation_id",
@@ -82,13 +93,15 @@ OULADDataLoader$setNamesOfColumns(
     "student_final_result_for_the_module"
   )
 )
-studentInfoTable <- OULADDataLoader$returnDataset()
+studentInfoTable <- OULADDataCleaner$returnDataset()
 # view(studentInfoTable)
 
 
 
 OULADDataLoader$storeDataFromCSVFile(paste(csvDirectory, csvFileNames[5], sep = ""))
-OULADDataLoader$setNamesOfColumns(
+studentRegistrationTable <- OULADDataLoader$returnDataset()
+OULADDataCleaner$setDataset(studentRegistrationTable)
+OULADDataCleaner$setNamesOfColumns(
   c(
     "module_id",
     "presentation_id",
@@ -97,11 +110,13 @@ OULADDataLoader$setNamesOfColumns(
     "student_days_it_took_them_to_unregister_relative_to_the_module_starting_day"
   )
 )
-studentRegistrationTable <- OULADDataLoader$returnDataset()
+studentRegistrationTable <- OULADDataCleaner$returnDataset()
 # view(studentRegistrationTable)
 
 OULADDataLoader$storeDataFromCSVFile(paste(csvDirectory, csvFileNames[6], sep = ""))
-OULADDataLoader$setNamesOfColumns(
+studentVLETable <- OULADDataLoader$returnDataset()
+OULADDataCleaner$setDataset(studentVLETable)
+OULADDataCleaner$setNamesOfColumns(
   c(
     "module_id",
     "presentation_id",
@@ -111,11 +126,13 @@ OULADDataLoader$setNamesOfColumns(
     "student_times_interacted_with_vle_material"
   )
 )
-studentVLETable <- OULADDataLoader$returnDataset()
+studentVLETable <- OULADDataCleaner$returnDataset()
 # view(studentVLETable)
 
 OULADDataLoader$storeDataFromCSVFile(paste(csvDirectory, csvFileNames[7], sep = ""))
-OULADDataLoader$setNamesOfColumns(
+VLETable <- OULADDataLoader$returnDataset()
+OULADDataCleaner$setDataset(VLETable)
+OULADDataCleaner$setNamesOfColumns(
   c(
     "vle_material_id",
     "module_id",
@@ -126,6 +143,6 @@ OULADDataLoader$setNamesOfColumns(
   )
 )
 
-VLETable <- OULADDataLoader$returnDataset()
+VLETable <- OULADDataCleaner$returnDataset()
 # view(VLETable)
 # --

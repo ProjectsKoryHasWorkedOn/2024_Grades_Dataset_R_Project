@@ -14,7 +14,7 @@ source(file = paste(getwd(), "/import/r_scripts/r_classes.R", sep = ""))
 
 # What I've done to the OULAD dataset
 # -- Data wrangling and transformation
-source(file = paste(getwd(), "/import/r_scripts/r_oulad_run_once_setup.R", sep = ""))
+source(file = paste(getwd(), "/import/r_scripts/r_oulad_part_1_setup.R", sep = ""))
 # --
 
 # -- Cleanup operations for the studentAssessmentTable in the OULAD database
@@ -47,10 +47,10 @@ studentInfoTable <- OULADDataCleaner$returnDataset()
 
 
 # Handle missing IMD band values
-OULADDataAnalyzer$setDataset(studentInfoTable)
-OULADDataAnalyzer$calculateWhatUniqueValuesWeHaveInAColumn(7)
+OULADDataChecker$setDataset(studentInfoTable)
+OULADDataChecker$calculateWhatUniqueValuesWeHaveInAColumn(7)
 whatUniqueValuesWeHaveInIMDBand <-
-  OULADDataAnalyzer$returnWhatUniqueValuesWeHaveInAColumn()
+  OULADDataChecker$returnWhatUniqueValuesWeHaveInAColumn()
 # Get a list of what unique values we have for the IMD band values
 # [1] "90-100%" "20-30%"  "30-40%"  "50-60%"  "80-90%"  "70-80%"  NA        "60-70%"  "40-50%"  "10-20%"  "0-10%"
 
@@ -207,10 +207,10 @@ whichRegionsHaveAMissingValue <-
 # view(whichRegionsHaveAMissingValue)
 
 # Get the names of the regions that have missing values for the IMD value
-OULADDataAnalyzer$setDataset(whichRegionsHaveAMissingValue)
-OULADDataAnalyzer$calculateWhatUniqueValuesWeHaveInAColumn(2)
+OULADDataChecker$setDataset(whichRegionsHaveAMissingValue)
+OULADDataChecker$calculateWhatUniqueValuesWeHaveInAColumn(2)
 whatAreTheNamesOfTheseRegions <-
-  OULADDataAnalyzer$returnWhatUniqueValuesWeHaveInAColumn()
+  OULADDataChecker$returnWhatUniqueValuesWeHaveInAColumn()
 
 # Get the number of regions that have missing values for the IMD value
 whatIsTheNumberOfTheseRegions = length(whatAreTheNamesOfTheseRegions[[1]])
@@ -284,21 +284,31 @@ studentRegistrationTable$student_days_it_took_them_to_register_relative_to_the_m
 # view(studentRegistrationTable)
 # --
 
-# -- Data analysis
+# -- Data checking
 # Checking for duplicate IDs for PKs
 # Worked out PKs through looking at the tables
-OULADDataAnalyzer$setDataset(assessmentsTable)
-OULADDataAnalyzer$checkForDuplicateValues(3) # assessment_id
+OULADDataChecker$setDataset(assessmentsTable)
+OULADDataChecker$checkForDuplicateValues(3) # assessment_id
 wereDuplicateAssessmentIDsFound <-
-  OULADDataAnalyzer$returnIfDuplicateValuesWereFound()
+  OULADDataChecker$returnIfDuplicateValuesWereFound()
 
-OULADDataAnalyzer$setDataset(VLETable)
-OULADDataAnalyzer$checkForDuplicateValues(1) # vle_material_id
+OULADDataChecker$setDataset(VLETable)
+OULADDataChecker$checkForDuplicateValues(1) # vle_material_id
 wereDuplicateVLEMaterialIDsFound <-
-  OULADDataAnalyzer$returnIfDuplicateValuesWereFound()
+  OULADDataChecker$returnIfDuplicateValuesWereFound()
+
+OULADDataChecker$calculateNumberOfMissingValues()
+wereMissingValuesFound <- OULADDataChecker$returnNumberOfMissingValues()
 
 # courses table and student info table have duplicates, no PK in them
 
+# --
+
+# Drop column with lots of missing values
+OULADDataCleaner$setDataset(VLETable)
+OULADDataCleaner$removeJunkColumns(c(5,6))
+VLETable <- OULADDataCleaner$returnDataset()
+# view(VLETable)
 # --
 
 # -- Merge a number of the tables together
@@ -345,7 +355,6 @@ mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStud
 # view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
 # --
 
-
 # -- Cleanup operations for the mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable in the OULAD database
 # Handle missing exam due dates. The end of the last week of the course is the last day of the course. The start of the last week of the course would be days in course - 7
 mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable$assessment_days_since_the_module_began_due_date <-
@@ -359,7 +368,7 @@ mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStud
 # --
 
 
-# -- Data anlysis
+# -- Data checking
 # Check that at least one of student_id, assessment_id, presentation_id, and module_id in the same row is unique
 # For testing purposes, we can add a row that shares 4 IDs
 # mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <- rbind(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable, list("AAA", "2013J", 704156, 1752, 18, "No", 67, "TMA", 20, 11, -18, "In/Completed course", "M", "Ireland", "HE Qualification", "90-100%", ">55",0, 120, "N", "Fail", 168))
@@ -384,13 +393,19 @@ mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStud
     weighted_score = ((student_score * assessment_weight)/100),
     .after = assessment_weight
   )
-view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
+# view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
 
 # --
 
 
 # -- Write these new files to CSV files
-write.csv(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable, file = "mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable.csv")
-write.csv(studentVLETable, file = "studentVLETable.csv")
-write.csv(VLETable, file = "VLETable.csv")
+OULADDataExporter$setDataset(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
+OULADDataExporter$writeToCsvFile("student&Course&AssessmentInfoTables.csv") #Uncomment this line to write the file
+
+OULADDataExporter$setDataset(studentVLETable)
+OULADDataExporter$writeToCsvFile("studentVLETable.csv") #Uncomment this line to write the file
+
+OULADDataExporter$setDataset(VLETable)
+OULADDataExporter$writeToCsvFile("VLETable.csv") #Uncomment this line to write the file
 # --
+

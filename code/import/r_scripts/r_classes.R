@@ -5,7 +5,6 @@ DataLoader <- R6Class(
       
     },
     
-    
     setUserCredentials = function(usernameArg = NA,
                                   passwordArg = NA) {
       private$usernameArg = usernameArg
@@ -77,8 +76,8 @@ DataLoader <- R6Class(
 DataCleaner <- R6Class(
   "DataCleaner",
   public = list(
-    setDataset = function(ds) {
-      private$dataset <- ds
+    setDataset = function(df = NA) {
+      private$dataset <- df
     },
     
     unnestAColumn = function(column = NA) {
@@ -89,15 +88,6 @@ DataCleaner <- R6Class(
     
     setNamesOfColumns = function(colNamesArg = NA){
       colnames(private$dataset) <- c(colNamesArg)
-    },
-    
-    
-    setNamesOfRowsForNumberOfRowsVectors = function() {
-      names(private$numberOfRowsWithUniqueValues) <- names(private$dataset)
-      names(private$numberOfRowsWithUniqueValues) <- paste(names(private$numberOfRowsWithUniqueValues), "unique rows count", sep = " ")
-      
-      names(private$numberOfRowsWithNonUniqueValues) <- names(private$dataset)
-      names(private$numberOfRowsWithNonUniqueValues) <- paste(names(private$numberOfRowsWithNonUniqueValues), "rows count", sep = " ")
     },
     
     replaceMissingValueWithAValue = function(columnArg, valueToReplaceMissingValueWithArg){
@@ -140,104 +130,10 @@ DataCleaner <- R6Class(
 DataAnalyzer <- R6Class(
   "DataAnalyzer",
   public = list(
-    initialize = function() {
-      
+    setDataset = function(df = NA) {
+      private$dataset <- df
     },
     
-    setDataset = function(ds) {
-      private$dataset <- ds
-    },
-    
-    calculateNumberOfColumns = function() {
-      private$numberOfColumns = ncol(private$dataset)
-    },
-    
-    
-    checkForDuplicateValues = function(colArg = NA){
-      duplicates <- duplicated(private$dataset[colArg])
-      
-      if('TRUE' %in% duplicates){
-        print(paste(sum(duplicated(private$dataset[colArg])), "duplicates found", sep=" "))
-        print(!unique(private$dataset[colArg]))
-        
-        private$duplicatesFound = TRUE
-      }
-      else{
-        private$duplicatesFound = FALSE
-      }
-      
-      
-    },
-    
-    
-    returnIfDuplicateValuesWereFound = function(){
-      return(private$duplicatesFound)
-    },
-    
-    
-    outputNumberOfColumns = function() {
-      cat("There are",
-          toString(private$numberOfColumns),
-          "columns",
-          sep = " ")
-    },
-    
-    
-    calculateWhatUniqueValuesWeHaveInAColumn = function(columnArg){
-      private$whatUniqueValuesWeHaveInAColumn <- unique(private$dataset[columnArg])
-    },
-    
-    returnWhatUniqueValuesWeHaveInAColumn = function(){
-      return(private$whatUniqueValuesWeHaveInAColumn)
-    },
-    
-    
-    calculateNumberOfRowsWithUniqueValues = function() {
-      for (iterator in seq(1, private$numberOfColumns)) {
-        private$numberOfRowsWithUniqueValues[iterator] = length(unique(private$dataset[[iterator]]))
-      }
-    },
-    
-    calculateNumberOfRowsWithNonUniqueValues = function() {
-      for (iterator in seq(1, private$numberOfColumns)) {
-        private$numberOfRowsWithNonUniqueValues[iterator] = length(private$dataset[[iterator]])
-      }
-    },
-    
-    
-    outputNumberOfRowsWithUniqueValues = function() {
-      print(private$numberOfRowsWithUniqueValues)
-    },
-    
-    returnNumberOfRowsWithUniqueValues = function() {
-      return(private$numberOfRowsWithUniqueValues)
-    },
-    
-    returnNumberOfRowsWithNonUniqueValues = function() {
-      return(private$numberOfRowsWithNonUniqueValues)
-    },
-    
-    
-    calculateNumberOfMissingValues = function() {
-      private$numberOfMissingValues = sum(is.na(private$dataset))
-    },
-    
-    returnNumberOfMissingValues = function(){
-      return(private$numberOfMissingValues)
-    },
-    
-    outputNumberOfMissingValues = function() {
-      if (private$numberOfMissingValues > 0) {
-        cat("There are",
-            private$numberOfMissingValues,
-            "missing values\n",
-            sep = " ")
-      }
-      else{
-        print("There are no missing values")
-      }
-      
-    },
     
     calculateMean = function(of = NA) {
       private$meanCalculation = mean(of)
@@ -406,10 +302,6 @@ DataAnalyzer <- R6Class(
   
   private = list(
     dataset = NULL,
-    numberOfMissingValues = NULL,
-    numberOfColumns = NULL,
-    numberOfRowsWithUniqueValues = NULL,
-    numberOfRowsWithNonUniqueValues = NULL,
     meanCalculation = NULL,
     medianCalculation = NULL,
     maximumCalculation = NULL,
@@ -420,9 +312,7 @@ DataAnalyzer <- R6Class(
     ZScoreCalculation = NULL,
     meanOfGroupCalculation = NULL,
     quartileOfGroupCalculation = NULL,
-    rangeOfValues = NULL,
-    duplicatesFound = NULL,
-    whatUniqueValuesWeHaveInAColumn = NULL
+    rangeOfValues = NULL
   )
   
 )
@@ -455,8 +345,8 @@ DataSubsetter <- R6Class(
   "DataSubsetter",
   
   public = list(
-    setDatasetAndDatasetName = function(ds = NA) {
-      private$dataset <- ds
+    setDataset = function(df = NA) {
+      private$dataset <- df
     },
     
     setQuery = function(query = NA) {
@@ -494,12 +384,12 @@ DataSupersetter <- R6Class(
   
   public = list(
     
-    setDataset = function(ds) {
-      private$dataset <- ds
+    setDataset = function(df = NA) {
+      private$dataset <- df
     },
     
-    setSecondDataset = function(ds) {
-      private$secondDataset <- ds
+    setSecondDataset = function(ds2 = NA) {
+      private$secondDataset <- ds2
     },
     
     
@@ -522,17 +412,17 @@ DataVisualizer <- R6Class(
   "DataVisualizer",
   
   public = list(
-    setDataset = function(ds = NA) {
-      private$dataset <- ds
+    setDataset = function(df = NA) {
+      private$dataset <- df
     },
     
-    setSecondDataset = function(ds = NA) {
-      private$secondDataset = ds
+    setSecondDataset = function(ds2 = NA) {
+      private$secondDataset <- ds2
     },
     
     
-    setThirdDataset = function(ds = NA) {
-      private$thirdDataset = ds
+    setThirdDataset = function(ds3 = NA) {
+      private$thirdDataset <- ds3
     }, 
     
     
@@ -648,8 +538,8 @@ DataModeler <- R6Class(
   "DataModeler",
   
   public = list(
-    setDatasetName = function(ds = NA) {
-      private$dataset <- ds
+    setDataset = function(df = NA) {
+      private$dataset <- df
     }
     
   ),
@@ -661,7 +551,143 @@ DataModeler <- R6Class(
 
 
 
+DataChecker <- R6Class(
+  "DataChecker",
+  
+  public = list(
+    setDataset = function(df = NA) {
+      private$dataset <- df
+    },
+    
+    calculateNumberOfColumns = function() {
+      private$numberOfColumns = ncol(private$dataset)
+    },
+    
+    setNamesOfRowsForNumberOfRowsVectors = function() {
+      names(private$numberOfRowsWithUniqueValues) <- names(private$dataset)
+      names(private$numberOfRowsWithUniqueValues) <- paste(names(private$numberOfRowsWithUniqueValues), "unique rows count", sep = " ")
+      
+      names(private$numberOfRowsWithNonUniqueValues) <- names(private$dataset)
+      names(private$numberOfRowsWithNonUniqueValues) <- paste(names(private$numberOfRowsWithNonUniqueValues), "rows count", sep = " ")
+    },
+    
+    checkForDuplicateValues = function(colArg = NA){
+      duplicates <- duplicated(private$dataset[colArg])
+      
+      if('TRUE' %in% duplicates){
+        print(paste(sum(duplicated(private$dataset[colArg])), "duplicates found", sep=" "))
+        print(!unique(private$dataset[colArg]))
+        
+        private$duplicatesFound = TRUE
+      }
+      else{
+        private$duplicatesFound = FALSE
+      }
+      
+      
+    },
+    
+    
+    returnIfDuplicateValuesWereFound = function(){
+      return(private$duplicatesFound)
+    },
+    
+    
+    outputNumberOfColumns = function() {
+      cat("There are",
+          toString(private$numberOfColumns),
+          "columns",
+          sep = " ")
+    },
+    
+    
+    calculateWhatUniqueValuesWeHaveInAColumn = function(columnArg){
+      private$whatUniqueValuesWeHaveInAColumn <- unique(private$dataset[columnArg])
+    },
+    
+    returnWhatUniqueValuesWeHaveInAColumn = function(){
+      return(private$whatUniqueValuesWeHaveInAColumn)
+    },
+    
+    
+    calculateNumberOfRowsWithUniqueValues = function() {
+      for (iterator in seq(1, private$numberOfColumns)) {
+        private$numberOfRowsWithUniqueValues[iterator] = length(unique(private$dataset[[iterator]]))
+      }
+    },
+    
+    calculateNumberOfRowsWithNonUniqueValues = function() {
+      for (iterator in seq(1, private$numberOfColumns)) {
+        private$numberOfRowsWithNonUniqueValues[iterator] = length(private$dataset[[iterator]])
+      }
+    },
+    
+    
+    outputNumberOfRowsWithUniqueValues = function() {
+      print(private$numberOfRowsWithUniqueValues)
+    },
+    
+    returnNumberOfRowsWithUniqueValues = function() {
+      return(private$numberOfRowsWithUniqueValues)
+    },
+    
+    returnNumberOfRowsWithNonUniqueValues = function() {
+      return(private$numberOfRowsWithNonUniqueValues)
+    },
+    
+    
+    calculateNumberOfMissingValues = function() {
+      private$numberOfMissingValues = sum(is.na(private$dataset))
+    },
+    
+    returnNumberOfMissingValues = function(){
+      return(private$numberOfMissingValues)
+    },
+    
+    outputNumberOfMissingValues = function() {
+      if (private$numberOfMissingValues > 0) {
+        cat("There are",
+            private$numberOfMissingValues,
+            "missing values\n",
+            sep = " ")
+      }
+      else{
+        print("There are no missing values")
+      }
+      
+    }
+    
+    
+    
+  ),
+  
+  private = list(
+    dataset = NULL,
+    numberOfMissingValues = NULL,
+    numberOfColumns = NULL,
+    numberOfRowsWithUniqueValues = NULL,
+    numberOfRowsWithNonUniqueValues = NULL,
+    duplicatesFound = NULL,
+    whatUniqueValuesWeHaveInAColumn = NULL)
+)
 
 
 
+DataExporter <- R6Class(
+  "DataExporter",
+  
+  public = list(
+    setDataset = function(df = NA) {
+      private$dataset <- df
+    },
+    
+    writeToCsvFile = function(filename = NA){
+      write.csv(private$dataset, file = filename)
+    }
+    
+  ),
+  
+  private = list(
+    dataset = NULL)
+)
 

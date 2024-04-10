@@ -17,24 +17,19 @@ source(file = paste(getwd(), "/import/r_scripts/r_classes.R", sep = ""))
 source(file = paste(getwd(), "/import/r_scripts/r_mongo_db_setup.R", sep = ""))
 # --
 
+# -- Data checking
+MGDBDataChecker$setDataset(mongoDBDataset)
+MGDBDataChecker$calculateNumberOfColumns()
+MGDBDataChecker$calculateNumberOfRowsWithUniqueValues()
+MGDBDataChecker$calculateNumberOfRowsWithNonUniqueValues()
+MGDBDataChecker$setNamesOfRowsForNumberOfRowsVectors()
+MGDBDataChecker$calculateNumberOfMissingValues()
+# --
+
 # -- Data analysis
 MGDBDataAnalyzer$setDataset(mongoDBDataset)
-
-MGDBDataAnalyzer$calculateNumberOfColumns()
-
-MGDBDataAnalyzer$calculateNumberOfRowsWithUniqueValues()
-MGDBDataAnalyzer$calculateNumberOfRowsWithNonUniqueValues()
-MGDBDataAnalyzer$setNamesOfRowsForNumberOfRowsVectors()
-
-MGDBDataAnalyzer$calculateNumberOfMissingValues()
-
 MGDBDataAnalyzer$calculateRangeOfValues(mongoDBDataset$score)
-
-
 MGDBDataAnalyzer$calculateMean(mongoDBDataset$score)
-
-
-
 MGDBDataAnalyzer$calculateMedian(mongoDBDataset$score)
 MGDBDataAnalyzer$calculateMaximum(mongoDBDataset$score)
 MGDBDataAnalyzer$calculateMinimum(mongoDBDataset$score)
@@ -44,13 +39,14 @@ MGDBDataAnalyzer$calculate3rdQuartile(mongoDBDataset$score)
 MGDBDataAnalyzer$calculateStandardDeviation(mongoDBDataset$score)
 # --
 
+# -- Data checking exports
+export_01_0001 <- MGDBDataChecker$returnNumberOfMissingValues()
+export_02_0001 <- MGDBDataChecker$returnNumberOfRowsWithNonUniqueValues()
+export_02_0002 <- MGDBDataChecker$returnNumberOfRowsWithUniqueValues()
+# --
+
 # -- Data analysis exports
-export_01_0001 <- MGDBDataAnalyzer$returnNumberOfMissingValues()
-
-export_02_0001 <- MGDBDataAnalyzer$returnNumberOfRowsWithNonUniqueValues()
-export_02_0002 <- MGDBDataAnalyzer$returnNumberOfRowsWithUniqueValues()
 export_02_0003 <- MGDBDataAnalyzer$returnRangeOfValues()
-
 export_03_0001 <- MGDBDataAnalyzer$returnMean()
 export_03_0002 <- MGDBDataAnalyzer$returnMedian()
 export_03_0003 <- MGDBDataAnalyzer$returnMaximum()

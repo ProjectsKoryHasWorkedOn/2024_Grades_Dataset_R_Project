@@ -8,6 +8,7 @@ MGDBDataAnalyzer <- DataAnalyzer$new()
 MGDBDataViewer <- DataViewer$new()
 MGDBDataVisualizer <- DataVisualizer$new()
 MGDBDataModeler <- DataModeler$new()
+MGDBDataChecker <- DataChecker$new()
 # --
 
 # -- Data loading
@@ -31,11 +32,11 @@ mongoDBDataset <- MGDBDataCleaner$returnDataset()
 mongoDBDataset <- mongoDBDataset %>%
   mutate(
     grade = (score = case_when(
-      score > 85 ~ "HD",
+      score >= 85 ~ "HD",
       score < 85 & score > 74 ~ "D",
       score < 75 & score > 64 ~ "Cr",
       score < 65 & score > 49 ~ "P",
-      score < 49 ~ "F")),
+      score <= 49 ~ "F")),
     .after = score
   )
 # --
