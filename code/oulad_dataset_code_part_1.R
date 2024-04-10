@@ -11,7 +11,6 @@ source(file = paste(getwd(), "/import/r_scripts/r_libraries.R", sep = ""))
 source(file = paste(getwd(), "/import/r_scripts/r_classes.R", sep = ""))
 # --
 
-
 # What I've done to the OULAD dataset
 # -- Data wrangling and transformation
 source(file = paste(getwd(), "/import/r_scripts/r_oulad_part_1_setup.R", sep = ""))
@@ -23,16 +22,11 @@ OULADDataCleaner$setDataset(studentAssessmentTable)
 OULADDataCleaner$replaceMissingValueWithAValue(5, 0)
 studentAssessmentTable <- OULADDataCleaner$returnDataset()
 
-
 # Change 0/1 values in the student assessment table to No/Yes for if result is transferred from a previous presentation
 OULADDataCleaner$setDataset(studentAssessmentTable)
 OULADDataCleaner$replaceValuesEqualToXWithAValueAndNotEqualToXWithAnotherValue(4, 1, 'Yes', 'No')
 studentAssessmentTable <- OULADDataCleaner$returnDataset()
-
-# See if those changes worked
-# view(studentAssessmentTable)
 # --
-
 
 # -- Cleanup operations for the studentInfoTable in the OULAD database
 # Handle wrongly entered age value (55<= should be >55)
@@ -40,18 +34,17 @@ OULADDataCleaner$setDataset(studentInfoTable)
 OULADDataCleaner$replaceValuesEqualToXWithAValue(8, '55<=', ">55")
 studentInfoTable <- OULADDataCleaner$returnDataset()
 
-# Handle wrongly entered IMD band value (missing % sign for 10-20)
+# Handle wrongly entered IMD band value ('10-20' value is missing a % sign, it should be '10-20%')
 OULADDataCleaner$setDataset(studentInfoTable)
 OULADDataCleaner$replaceValuesEqualToXWithAValue(7, '10-20', "10-20%")
 studentInfoTable <- OULADDataCleaner$returnDataset()
-
 
 # Handle missing IMD band values
 OULADDataChecker$setDataset(studentInfoTable)
 OULADDataChecker$calculateWhatUniqueValuesWeHaveInAColumn(7)
 whatUniqueValuesWeHaveInIMDBand <-
   OULADDataChecker$returnWhatUniqueValuesWeHaveInAColumn()
-# Get a list of what unique values we have for the IMD band values
+# Can see that there are 'NA' values so that's what we'll be dealing with
 # [1] "90-100%" "20-30%"  "30-40%"  "50-60%"  "80-90%"  "70-80%"  NA        "60-70%"  "40-50%"  "10-20%"  "0-10%"
 
 # Return what the most common IMD band value is for ONE particular region
@@ -194,7 +187,6 @@ subsetOfStudentInfoTable <-
     region_student_lived_in_while_taking_the_module,
     index_of_multiple_deprivation_for_a_uk_region
   )
-# view(subsetOfStudentInfoTable)
 
 # Get just the subsetOfStudentInfoTable with the regions that have missing values for the IMD value
 whichRegionsHaveAMissingValue <-
@@ -204,7 +196,6 @@ whichRegionsHaveAMissingValue <-
       subsetOfStudentInfoTable$index_of_multiple_deprivation_for_a_uk_region
     )
   )
-# view(whichRegionsHaveAMissingValue)
 
 # Get the names of the regions that have missing values for the IMD value
 OULADDataChecker$setDataset(whichRegionsHaveAMissingValue)
@@ -233,7 +224,6 @@ subsetOfStudentInfoTable$index_of_multiple_deprivation_for_a_uk_region <-
     subsetOfStudentInfoTable$region_student_lived_in_while_taking_the_module,
     subsetOfStudentInfoTable$index_of_multiple_deprivation_for_a_uk_region
   )
-# view(subsetOfStudentInfoTable)
 
 # Replace the names of the region with the most common IMD value in that region
 for (i in 1:nrow(subsetOfStudentInfoTable)) {
@@ -247,20 +237,16 @@ for (i in 1:nrow(subsetOfStudentInfoTable)) {
   }
 }
 
-# view(subsetOfStudentInfoTable)
-
-
-# Replacing NA values in our studentInfoTable with values in our subsetOfStudentInfoTable that now contain some IMD values we've come up with
+# Replacing NA values in our studentInfoTable with values in our subsetOfStudentInfoTable
+# that now contain some IMD values we've come up with
 studentInfoTable$index_of_multiple_deprivation_for_a_uk_region <-
   subsetOfStudentInfoTable$index_of_multiple_deprivation_for_a_uk_region
-
-# See if those changes worked
-# view(studentInfoTable)
 # --
 
 
 # -- Cleanup operations for the studentRegistrationTable in the OULAD database
-# Clarify that if the date the student unregistered field is empty then this means that either the student is still in the course or has completed the course
+# Clarify that if the date the student unregistered field is empty then this means that
+# either the student is still in the course or has completed the course
 studentRegistrationTable$student_days_it_took_them_to_unregister_relative_to_the_module_starting_day <-
   replace(
     studentRegistrationTable$student_days_it_took_them_to_unregister_relative_to_the_module_starting_day,
@@ -279,9 +265,6 @@ studentRegistrationTable$student_days_it_took_them_to_register_relative_to_the_m
     ),
     0
   )
-
-# See if those changes worked
-# view(studentRegistrationTable)
 # --
 
 # -- Data checking
@@ -298,17 +281,17 @@ wereDuplicateVLEMaterialIDsFound <-
   OULADDataChecker$returnIfDuplicateValuesWereFound()
 
 OULADDataChecker$calculateNumberOfMissingValues()
-wereMissingValuesFound <- OULADDataChecker$returnNumberOfMissingValues()
+wereMissingValuesFound <-
+  OULADDataChecker$returnNumberOfMissingValues()
 
 # courses table and student info table have duplicates, no PK in them
 
 # --
 
-# Drop column with lots of missing values
+# Drop columns with lots of missing values
 OULADDataCleaner$setDataset(VLETable)
-OULADDataCleaner$removeJunkColumns(c(5,6))
+OULADDataCleaner$removeJunkColumns(c(5, 6))
 VLETable <- OULADDataCleaner$returnDataset()
-# view(VLETable)
 # --
 
 # -- Merge a number of the tables together
@@ -319,7 +302,6 @@ OULADDataSupersetter$setDataset(studentAssessmentTable)
 OULADDataSupersetter$setSecondDataset(assessmentsTable)
 mergedAssessmentTableAndStudentAssessmentTable <-
   OULADDataSupersetter$mergeTwoTables("assessment_id")
-# view(mergedAssessmentTableAndStudentAssessmentTable)
 
 # Merge student assessment table + assessments + student registration table
 mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTable <-
@@ -329,8 +311,6 @@ mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTable <-
     by.x = c("student_id", "module_id", "presentation_id"),
     by.y = c("student_id", "module_id", "presentation_id")
   )
-# view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTable)
-
 
 # Merge student assessment table + assessments + student registration + student info table
 mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoTable <-
@@ -340,8 +320,6 @@ mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStud
     by.x = c("student_id", "module_id", "presentation_id"),
     by.y = c("student_id", "module_id", "presentation_id")
   )
-# view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoTable)
-
 
 # Merge student assessment table + assessments + student registration + student info + courses table
 mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <-
@@ -351,12 +329,11 @@ mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStud
     by.x = c("module_id", "presentation_id"),
     by.y = c("module_id", "presentation_id")
   )
-
-# view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
 # --
 
-# -- Cleanup operations for the mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable in the OULAD database
-# Handle missing exam due dates. The end of the last week of the course is the last day of the course. The start of the last week of the course would be days in course - 7
+# -- Cleanup operations for the mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable
+# Handle missing exam due dates. The end of the last week of the course is the last day of the course. 
+# The start of the last week of the course would be days in course - 7
 mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable$assessment_days_since_the_module_began_due_date <-
   ifelse(
     is.na(
@@ -367,12 +344,10 @@ mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStud
   )
 # --
 
-
 # -- Data checking
 # Check that at least one of student_id, assessment_id, presentation_id, and module_id in the same row is unique
-# For testing purposes, we can add a row that shares 4 IDs
+# For testing purposes, I added a row that shares 4 IDs to see if my code would detect the duplicate row
 # mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <- rbind(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable, list("AAA", "2013J", 704156, 1752, 18, "No", 67, "TMA", 20, 11, -18, "In/Completed course", "M", "Ireland", "HE Qualification", "90-100%", ">55",0, 120, "N", "Fail", 168))
-# view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
 
 # Return a list of rows that share 4 IDs
 output <-
@@ -387,25 +362,205 @@ output <-
 numberOfRowsThatShare4IDS <- nrow(output)
 # --
 
-# -- Creation of a new column
-mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <- mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable %>%
-  mutate(
-    weighted_score = ((student_score * assessment_weight)/100),
-    .after = assessment_weight
-  )
-# view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
-
+# -- Creation of a new column that determines the weighted score
+mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <-
+  mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable %>%
+  mutate(weighted_score = ((student_score * assessment_weight) / 100),
+         .after = assessment_weight)
 # --
 
+# -- Creation of a new column that contains the difference between the due date and when the student handed in the assignment
+mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <-
+  mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable %>%
+  mutate(
+    difference_between_due_date_and_hand_in_date = (
+      assessment_days_since_the_module_began_due_date - student_days_it_took_to_submit_assessment
+    ),
+    .after = assessment_days_since_the_module_began_due_date
+  )
+# --
+
+# -- Set how much the exam and other assessment items weigh so they add up to 100%
+# For the case where the student does an exam as well as other assessments in a module
+# This will make working out the cumulative GPA possible
+newExamWeightValue = 0.4 # Exam weighed at 40% for example
+newWeightingOfAllOtherAssessmentsValue = 1 - newExamWeightValue # Other assessments weighed at 60% for example
+
+# -- Creation of a new column for the new weight of every assessment type
+# For the case where the student does an exam as well as other assessments in a module
+addColumnForNewWeightingOfAssessments <-
+  mutate(
+    mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable,
+    assessment_weight_exam_and_other_assessments_done = ifelse(
+      assessment_type == "Exam",
+      newExamWeightValue * assessment_weight,
+      newWeightingOfAllOtherAssessmentsValue * assessment_weight
+    ),
+    .after = weighted_score
+  )
+# --
+
+# -- Creation of a new column for the new weighted score based on the new weight for every assessment type
+# For the case where the student does an exam as well as other assessments in a module
+addColumnForNewWeightedScoresOfAssessments <-
+  addColumnForNewWeightingOfAssessments %>%
+  mutate(
+    weighted_score_exam_and_other_assessments_done = ((
+      student_score * assessment_weight_exam_and_other_assessments_done
+    ) / 100
+    ),
+    .after = assessment_weight_exam_and_other_assessments_done
+  )
+# --
+
+# -- Calculation and creation of a new column for
+# - The sum of the weighted scores for each module
+# - If student has finished the course
+# - If student has taken an exam
+expression <-
+  'SELECT 
+    student_id, 
+    module_id, 
+    presentation_id, 
+    number_of_credits_the_module_is_worth, 
+    SUM(weighted_score) AS sum_weighted_score, 
+    SUM(weighted_score_exam_and_other_assessments_done) AS sum_weighted_score_exam_and_other_assessments_done, 
+    SUM(CASE WHEN assessment_type LIKE \'%Exam%\' THEN 1 ELSE 0 END) AS has_student_taken_an_exam, 
+    case when student_final_result_for_the_module LIKE \'%Withdrawn%\' then \'No\' else \'Yes\' end did_student_finish_the_course
+  FROM 
+      addColumnForNewWeightedScoresOfAssessments 
+  GROUP BY student_id, module_id, presentation_id'
+
+workOutTheSumOfTheWeightedScoresAndIfStudentHasTakenAnExamAndIfStudentHasFinishedTheCourse <-
+  sqldf(expression)
+
+# -- Creation of a new column for the grade a student gets
+# - Considering if they withdrew from the course or not
+# - Considering if they took an exam or not
+addAGradeColumnBasedOnTheNewAssessmentWeighting <-
+  workOutTheSumOfTheWeightedScoresAndIfStudentHasTakenAnExamAndIfStudentHasFinishedTheCourse %>%
+  mutate(grade = (
+    score = case_when(
+      did_student_finish_the_course == "No" ~ "WNF",
+      did_student_finish_the_course == "Yes" &
+        has_student_taken_an_exam > 0 ~ case_when(
+          sum_weighted_score_exam_and_other_assessments_done >= 85 ~ "HD",
+          sum_weighted_score_exam_and_other_assessments_done < 85 &
+            sum_weighted_score_exam_and_other_assessments_done > 74 ~ "D",
+          sum_weighted_score_exam_and_other_assessments_done < 75 &
+            sum_weighted_score_exam_and_other_assessments_done > 64 ~ "Cr",
+          sum_weighted_score_exam_and_other_assessments_done < 65 &
+            sum_weighted_score_exam_and_other_assessments_done > 49 ~ "P",
+          sum_weighted_score_exam_and_other_assessments_done <= 49 ~ "F"
+        ),
+      did_student_finish_the_course == "Yes" &
+        has_student_taken_an_exam <= 0 ~ case_when(
+          sum_weighted_score >= 85 ~ "HD",
+          sum_weighted_score < 85 & sum_weighted_score > 74 ~ "D",
+          sum_weighted_score < 75 & sum_weighted_score > 64 ~ "Cr",
+          sum_weighted_score < 65 & sum_weighted_score > 49 ~ "P",
+          sum_weighted_score <= 49 ~ "F"
+        )
+      
+    )
+  ),
+  .after = did_student_finish_the_course)
+# --
+
+# -- Creation of a new column that groups the module ID with the presentation ID
+addAGradeColumnBasedOnTheNewAssessmentWeighting <- addAGradeColumnBasedOnTheNewAssessmentWeighting %>%
+  mutate(group_ids_together = paste(module_id, presentation_id, sep = ", "), .after = presentation_id) 
+# --
+
+# -- Creation of a new column that converts the grade to it's numerical equivalent
+addNumericalEquivalentToGradeColumn <-
+  addAGradeColumnBasedOnTheNewAssessmentWeighting %>%
+  mutate(numerical_grade_equivalent = (
+    grade = case_when(
+      grade == "HD" ~ 7,
+      grade == "D" ~ 6,
+      grade == "Cr" ~ 5,
+      grade == "P" ~ 4,
+      grade == "F" ~ 1.5,
+      grade == "WF" ~ NA
+    )
+  ),
+  .after = grade)
+# --
+
+# -- Creation of a new column that works out the grade points
+expression <-
+  'SELECT 
+    student_id,
+    group_ids_together,
+    (numerical_grade_equivalent * number_of_credits_the_module_is_worth) AS grade_points, 
+    SUM(number_of_credits_the_module_is_worth) AS course_credits
+  FROM 
+    addNumericalEquivalentToGradeColumn 
+  GROUP BY student_id, group_ids_together'
+
+workOutTheGP <- sqldf(expression)
+# --
+
+# -- Creation of the new column that works out the cumulative GPA
+expression <-
+  'SELECT 
+    student_id, 
+    ROUND(SUM(grade_points) / SUM(course_credits), 2) AS cumulative_gpa
+  FROM 
+    workOutTheGP 
+  GROUP BY student_id'
+
+workOutTheCGPA <- sqldf(expression)
+# --
+
+# -- Merging of the OG table with the new grades that student got for the module 
+subsetOfAddAGradeColumnBasedOnTheNewAssessmentWeighting <- addAGradeColumnBasedOnTheNewAssessmentWeighting
+
+OULADDataCleaner$setDataset(subsetOfAddAGradeColumnBasedOnTheNewAssessmentWeighting)
+OULADDataCleaner$removeJunkColumns(c(4,5,6,7))
+
+subsetOfAddAGradeColumnBasedOnTheNewAssessmentWeighting <- OULADDataCleaner$returnDataset()
+
+mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <-
+  left_join(
+    mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable,
+    subsetOfAddAGradeColumnBasedOnTheNewAssessmentWeighting,
+    by = join_by(
+      "student_id" == "student_id",
+      "module_id" == "module_id",
+      "presentation_id" == "presentation_id"
+    )
+  )
+# --
+
+# -- Prepare a mini-table for exporting
+studentModulePresentationGradeTable <- addAGradeColumnBasedOnTheNewAssessmentWeighting
+OULADDataCleaner$setDataset(studentModulePresentationGradeTable)
+OULADDataCleaner$removeJunkColumns(c(2, 3, 5, 6, 7, 8, 9))
+studentModulePresentationGradeTable <- OULADDataCleaner$returnDataset()
+# --
+
+OULADDataExporter$setDataset()
+OULADDataExporter$writeToCsvFile("studentCourseAssessmentInfoTablesWithLessClutter.csv")
+
+# --
 
 # -- Write these new files to CSV files
-OULADDataExporter$setDataset(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
-OULADDataExporter$writeToCsvFile("student&Course&AssessmentInfoTables.csv") #Uncomment this line to write the file
+OULADDataExporter$setDataset(studentModulePresentationGradeTable)
+OULADDataExporter$writeToCsvFile("studentModulePresentationGradeTable.csv")
+
+OULADDataExporter$setDataset(workOutTheCGPA)
+OULADDataExporter$writeToCsvFile("studentCumulativeGPAsTable.csv")
+
+OULADDataExporter$setDataset(
+  mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable
+)
+OULADDataExporter$writeToCsvFile("studentCourseAssessmentInfoTables.csv")
 
 OULADDataExporter$setDataset(studentVLETable)
-OULADDataExporter$writeToCsvFile("studentVLETable.csv") #Uncomment this line to write the file
+OULADDataExporter$writeToCsvFile("studentVLETable.csv")
 
 OULADDataExporter$setDataset(VLETable)
-OULADDataExporter$writeToCsvFile("VLETable.csv") #Uncomment this line to write the file
+OULADDataExporter$writeToCsvFile("VLETable.csv")
 # --
-

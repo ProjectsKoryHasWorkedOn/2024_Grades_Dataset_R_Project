@@ -17,9 +17,11 @@ csvDirectory <- paste(getwd(), "/import/csv_after_processing/", sep = "")
 
 csvFileNames <-
   c(
-    "student&Course&AssessmentInfoTables.csv",
+    "studentCourseAssessmentInfoTables.csv",
     "studentVLETable.csv",
-    "VLETable.csv"
+    "VLETable.csv",
+    "studentModulePresentationGradeTable.csv",
+    "studentCumulativeGPAsTable.csv"
   )
 # --
 
@@ -32,6 +34,14 @@ studentVLETable <- OULADDataLoader$returnDataset()
 
 OULADDataLoader$storeDataFromCSVFile(paste(csvDirectory, csvFileNames[3], sep = ""))
 VLETable <- OULADDataLoader$returnDataset()
+
+OULADDataLoader$storeDataFromCSVFile(paste(csvDirectory, csvFileNames[4], sep = ""))
+studentModulePresentationGradeTable <- OULADDataLoader$returnDataset()
+
+OULADDataLoader$storeDataFromCSVFile(paste(csvDirectory, csvFileNames[5], sep = ""))
+studentCumulativeGPAsTable <- OULADDataLoader$returnDataset()
+
+
 # --
 
 # -- Data cleanup
@@ -48,12 +58,21 @@ OULADDataCleaner$removeJunkColumns(1)
 VLETable <- OULADDataCleaner$returnDataset()
 # --
 
+
+# -- Indicate the ordering of the grades so they're in order when graphing them
+studentModulePresentationGradeTable$grade = factor(
+  studentModulePresentationGradeTable$grade,
+  levels = c("WNF", "F", "P", "Cr", "D", "HD"),
+  ordered = TRUE
+)
+# --
+
 # -- Data viewing
-OULADDataViewer$setDatasetAndDatasetName(studentCourseAssessmentInfoTables, "student&Course&AssessmentInfoTables")
+OULADDataViewer$setDatasetAndDatasetName(studentCourseAssessmentInfoTables, "studentCourseAssessmentInfoTables")
 OULADDataViewer$viewDataset() # Comment this line to not view the dataset
 
 OULADDataViewer$setDatasetAndDatasetName(studentVLETable, "studentVLETable")
-# OULADDataViewer$viewDataset() # Comment this line to not view the dataset
+# OULADDataViewer$viewDataset() # Remove the comment on this line to view the dataset
 
 OULADDataViewer$setDatasetAndDatasetName(VLETable, "VLETable")
 OULADDataViewer$viewDataset() # Comment this line to not view the dataset
