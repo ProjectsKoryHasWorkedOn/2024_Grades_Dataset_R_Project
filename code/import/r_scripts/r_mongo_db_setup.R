@@ -3,7 +3,7 @@
 # -- Declaration of classes that I'll be using to work with the data
 MGDBDataLoader <- DataLoader$new()
 MGDBDataCleaner <- DataCleaner$new()
-MGDBDataSubsetter <- DataSubsetter$new()
+MGDBDatasetQuerier <- DatasetQuerier$new()
 MGDBDataAnalyzer <- DataAnalyzer$new()
 MGDBDataViewer <- DataViewer$new()
 MGDBDataVisualizer <- DataVisualizer$new()

@@ -17,9 +17,9 @@ if(mongolite_not_installed == TRUE){
 }
 
 #Search for "tidyverse" package and install if not installed
-tidyplot <- find.package("tidyverse", quiet = TRUE)
-tidyplot_not_installed <- is.integer0(tidyplot)
-if(tidyplot_not_installed == TRUE){
+tidyverse <- find.package("tidyverse", quiet = TRUE)
+tidyverse_not_installed <- is.integer0(tidyverse)
+if(tidyverse_not_installed == TRUE){
   install.packages("tidyverse", dependencies=T)
 }
 

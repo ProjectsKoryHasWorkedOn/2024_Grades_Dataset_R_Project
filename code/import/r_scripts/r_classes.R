@@ -341,8 +341,8 @@ DataViewer <- R6Class(
 )
 
 
-DataSubsetter <- R6Class(
-  "DataSubsetter",
+DatasetQuerier <- R6Class(
+  "DatasetQuerier",
   
   public = list(
     setDataset = function(df = NA) {

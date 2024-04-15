@@ -362,11 +362,107 @@ output <-
 numberOfRowsThatShare4IDS <- nrow(output)
 # --
 
+# -- Work out whether the original weighted value even adds up to 100 
+expression <-
+"SELECT 
+  module_id, 
+  presentation_id, 
+  student_id, 
+  SUM(assessment_weight) AS 'sum_assessment_weight',
+  CASE 
+    WHEN SUM(assessment_weight) != 0 THEN (100 / SUM(assessment_weight)) 
+  END 'non_zero_weighting_sum_scale_assessment_weightings_by_this_value',
+  CASE
+    WHEN SUM(assessment_weight) == 0 THEN COUNT(assessment_weight)
+  END 'zero_weighting_sum_number_of_assessments_hundred_divide_by_this_value_for_each_assessment'
+FROM 
+  mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable
+WHERE 
+  assessment_type NOT LIKE '%Exam%'
+GROUP BY 
+  module_id, 
+  presentation_id, 
+  student_id"
+
+
+checkingAssessmentWeights <- sqldf(expression)
+
+
+# -- Putting this alongside the original table
+mergingAndFixing <- merge(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable, 
+      checkingAssessmentWeights, by = c("module_id","presentation_id", "student_id"),all = T)
+# view(mergingAndFixing)
+
+expression <- 
+"SELECT 
+  module_id,
+  presentation_id,
+  student_id,
+  assessment_id,
+  student_score,
+  assessment_type,
+  assessment_weight,
+  sum_assessment_weight,
+  non_zero_weighting_sum_scale_assessment_weightings_by_this_value,
+  zero_weighting_sum_number_of_assessments_hundred_divide_by_this_value_for_each_assessment
+FROM 
+  mergingAndFixing"
+
+checkingThisOut <- sqldf(expression)
+# view(checkingThisOut)
+# --
+
+# -- Creation of a new column that determines the weighted score
+hopingThisWorks <-
+  checkingThisOut %>%
+  mutate(new_assessment_weight = (
+    sum_assessment_weight = case_when(
+      assessment_type != "Exam" & sum_assessment_weight == 0 ~ 100 / zero_weighting_sum_number_of_assessments_hundred_divide_by_this_value_for_each_assessment,
+      assessment_type != "Exam" & sum_assessment_weight != 0 ~ assessment_weight * non_zero_weighting_sum_scale_assessment_weightings_by_this_value,
+      assessment_type == "Exam" ~ assessment_weight
+      )
+  ),
+  .after = assessment_weight)
+# --
+hopingThisWorks <- arrange(hopingThisWorks, student_id)
+# view(hopingThisWorks)
+
+
+# -- Replacing the assessment_weight column with our new calculations for it....
+# huh <- anti_join(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable, hopingThisWorks)
+# view(huh)
+
+# -- Removing junk columns
+OULADDataCleaner$setDataset(hopingThisWorks)
+OULADDataCleaner$removeJunkColumns(c(5,6,7,9,10,11))
+hopingThisWorks <- OULADDataCleaner$returnDataset()
+# view(hopingThisWorks)
+# -- Merging, it's right now
+
+mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <- merge(
+mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable, 
+hopingThisWorks, 
+by = c("module_id","presentation_id", "student_id", "assessment_id"),all = T)
+# view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
+
+# This was wrong or it at least put it in the wrong order!
+#mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <- arrange(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable, student_id)
+#mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable$new_assessment_weight <- hopingThisWorks$new_assessment_weight
+#view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
+# --
+
+
+# ---
+# Changed from here onwards
+# assessment_weight -> new_assessment_weight
+# ---
+
 # -- Creation of a new column that determines the weighted score
 mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <-
   mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable %>%
-  mutate(weighted_score = ((student_score * assessment_weight) / 100),
-         .after = assessment_weight)
+  mutate(weighted_score = ((student_score * new_assessment_weight) / 100),
+         .after = new_assessment_weight)
+view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
 # --
 
 # -- Creation of a new column that contains the difference between the due date and when the student handed in the assignment
@@ -393,11 +489,12 @@ addColumnForNewWeightingOfAssessments <-
     mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable,
     assessment_weight_exam_and_other_assessments_done = ifelse(
       assessment_type == "Exam",
-      newExamWeightValue * assessment_weight,
-      newWeightingOfAllOtherAssessmentsValue * assessment_weight
+      newExamWeightValue * new_assessment_weight,
+      newWeightingOfAllOtherAssessmentsValue * new_assessment_weight
     ),
     .after = weighted_score
   )
+# view(addColumnForNewWeightingOfAssessments)
 # --
 
 # -- Creation of a new column for the new weighted score based on the new weight for every assessment type
@@ -411,6 +508,7 @@ addColumnForNewWeightedScoresOfAssessments <-
     ),
     .after = assessment_weight_exam_and_other_assessments_done
   )
+# view(addColumnForNewWeightedScoresOfAssessments)
 # --
 
 # -- Calculation and creation of a new column for
@@ -423,16 +521,21 @@ expression <-
     module_id, 
     presentation_id, 
     number_of_credits_the_module_is_worth, 
-    SUM(weighted_score) AS sum_weighted_score, 
-    SUM(weighted_score_exam_and_other_assessments_done) AS sum_weighted_score_exam_and_other_assessments_done, 
-    SUM(CASE WHEN assessment_type LIKE \'%Exam%\' THEN 1 ELSE 0 END) AS has_student_taken_an_exam, 
-    case when student_final_result_for_the_module LIKE \'%Withdrawn%\' then \'No\' else \'Yes\' end did_student_finish_the_course
+    SUM(weighted_score) 
+      AS sum_weighted_score, 
+    SUM(weighted_score_exam_and_other_assessments_done) 
+      AS sum_weighted_score_exam_and_other_assessments_done, 
+    SUM(CASE WHEN assessment_type LIKE \'%Exam%\' THEN 1 ELSE 0 END) 
+      AS has_student_taken_an_exam, 
+    case when student_final_result_for_the_module LIKE \'%Withdrawn%\' then \'No\' 
+      else \'Yes\' end did_student_finish_the_course
   FROM 
       addColumnForNewWeightedScoresOfAssessments 
   GROUP BY student_id, module_id, presentation_id'
 
 workOutTheSumOfTheWeightedScoresAndIfStudentHasTakenAnExamAndIfStudentHasFinishedTheCourse <-
   sqldf(expression)
+view(workOutTheSumOfTheWeightedScoresAndIfStudentHasTakenAnExamAndIfStudentHasFinishedTheCourse)
 
 # -- Creation of a new column for the grade a student gets
 # - Considering if they withdrew from the course or not
@@ -467,6 +570,8 @@ addAGradeColumnBasedOnTheNewAssessmentWeighting <-
   .after = did_student_finish_the_course)
 # --
 
+view(addAGradeColumnBasedOnTheNewAssessmentWeighting)
+
 # -- Creation of a new column that groups the module ID with the presentation ID
 addAGradeColumnBasedOnTheNewAssessmentWeighting <- addAGradeColumnBasedOnTheNewAssessmentWeighting %>%
   mutate(group_ids_together = paste(module_id, presentation_id, sep = ", "), .after = presentation_id) 
@@ -493,8 +598,10 @@ expression <-
   'SELECT 
     student_id,
     group_ids_together,
-    (numerical_grade_equivalent * number_of_credits_the_module_is_worth) AS grade_points, 
-    SUM(number_of_credits_the_module_is_worth) AS course_credits
+    (numerical_grade_equivalent * number_of_credits_the_module_is_worth) 
+      AS grade_points, 
+    SUM(number_of_credits_the_module_is_worth) 
+      AS course_credits
   FROM 
     addNumericalEquivalentToGradeColumn 
   GROUP BY student_id, group_ids_together'
@@ -506,7 +613,8 @@ workOutTheGP <- sqldf(expression)
 expression <-
   'SELECT 
     student_id, 
-    ROUND(SUM(grade_points) / SUM(course_credits), 2) AS cumulative_gpa
+    ROUND(SUM(grade_points) / SUM(course_credits), 2) 
+      AS cumulative_gpa
   FROM 
     workOutTheGP 
   GROUP BY student_id'
@@ -541,9 +649,66 @@ OULADDataCleaner$removeJunkColumns(c(2, 3, 5, 6, 7, 8, 9))
 studentModulePresentationGradeTable <- OULADDataCleaner$returnDataset()
 # --
 
-OULADDataExporter$setDataset()
-OULADDataExporter$writeToCsvFile("studentCourseAssessmentInfoTablesWithLessClutter.csv")
+# -- Add a new column to the table
+studentVLETable$master_id <- seq.int(nrow(studentVLETable))
 
+studentVLETable <- studentVLETable %>%
+  select(master_id, everything())
+
+# --
+
+# -- Splitting this stupidly large table with 10655280 lines into eight parts
+sprintf("Number of lines in full data set: %s", nrow(studentVLETable))
+
+firstSplitExpression <- "
+SELECT *
+FROM studentVLETable
+WHERE master_id BETWEEN 1 AND 1331910"
+
+secondSplitExpression <- "
+SELECT *
+FROM studentVLETable
+WHERE master_id BETWEEN 1331911 AND 2663821"
+
+thirdSplitExpression <- "
+SELECT *
+FROM studentVLETable
+WHERE master_id BETWEEN 2663822 AND 3995732"
+
+fourthSplitExpression <- "
+SELECT *
+FROM studentVLETable
+WHERE master_id BETWEEN 3995733 AND 5327643"
+
+
+fifthSplitExpression <- "
+SELECT *
+FROM studentVLETable
+WHERE master_id BETWEEN 5327644 AND 6659554"
+
+sixthSplitExpression <- "
+SELECT *
+FROM studentVLETable
+WHERE master_id BETWEEN 6659555 AND 7991465"
+
+seventhSplitExpression <- "
+SELECT *
+FROM studentVLETable
+WHERE master_id BETWEEN 7991466 AND 9323376"
+
+eighthSplitExpression <- "
+SELECT *
+FROM studentVLETable
+WHERE master_id BETWEEN 9323377 AND 10655280"
+
+firstSubsetOfStudentVLETTable <- sqldf(firstSplitExpression)
+secondSubsetOfStudentVLETTable <- sqldf(secondSplitExpression)
+thirdSubsetOfStudentVLETTable <- sqldf(thirdSplitExpression)
+fourthSubsetOfStudentVLETTable <- sqldf(fourthSplitExpression)
+fifthSubsetOfStudentVLETTable <- sqldf(fifthSplitExpression)
+sixthSubsetOfStudentVLETTable <- sqldf(sixthSplitExpression)
+seventhSubsetOfStudentVLETTable <- sqldf(seventhSplitExpression)
+eighthSubsetOfStudentVLETTable <- sqldf(eighthSplitExpression)
 # --
 
 # -- Write these new files to CSV files
@@ -558,8 +723,34 @@ OULADDataExporter$setDataset(
 )
 OULADDataExporter$writeToCsvFile("studentCourseAssessmentInfoTables.csv")
 
+
 OULADDataExporter$setDataset(studentVLETable)
 OULADDataExporter$writeToCsvFile("studentVLETable.csv")
+
+
+OULADDataExporter$setDataset(firstSubsetOfStudentVLETTable)
+OULADDataExporter$writeToCsvFile("studentVLETableSubset1.csv")
+
+OULADDataExporter$setDataset(secondSubsetOfStudentVLETTable)
+OULADDataExporter$writeToCsvFile("studentVLETableSubset2.csv")
+
+OULADDataExporter$setDataset(thirdSubsetOfStudentVLETTable)
+OULADDataExporter$writeToCsvFile("studentVLETableSubset3.csv")
+
+OULADDataExporter$setDataset(fourthSubsetOfStudentVLETTable)
+OULADDataExporter$writeToCsvFile("studentVLETableSubset4.csv")
+
+OULADDataExporter$setDataset(fifthSubsetOfStudentVLETTable)
+OULADDataExporter$writeToCsvFile("studentVLETableSubset5.csv")
+
+OULADDataExporter$setDataset(sixthSubsetOfStudentVLETTable)
+OULADDataExporter$writeToCsvFile("studentVLETableSubset6.csv")
+
+OULADDataExporter$setDataset(seventhSubsetOfStudentVLETTable)
+OULADDataExporter$writeToCsvFile("studentVLETableSubset7.csv")
+
+OULADDataExporter$setDataset(eighthSubsetOfStudentVLETTable)
+OULADDataExporter$writeToCsvFile("studentVLETableSubset8.csv")
 
 OULADDataExporter$setDataset(VLETable)
 OULADDataExporter$writeToCsvFile("VLETable.csv")

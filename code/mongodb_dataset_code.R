@@ -58,23 +58,23 @@ export_03_0007 <- MGDBDataAnalyzer$returnStandardDeviation()
 
 # -- Data visualization exports
 MGDBDataVisualizer$setDataset(mongoDBDataset)
-export_04_0001 <- MGDBDataVisualizer$graphHistogram(round(mongoDBDataset$score), 200, c("firebrick", "red", "green", "forestgreen"), "Where students grades lie", "grade", "density", 0.15)
+export_04_0001 <- MGDBDataVisualizer$graphHistogram(round(mongoDBDataset$score), 200, c("firebrick", "red", "green", "forestgreen"), "Where students scores lie", "Student scores", "density", 0.15)
 # --
 
 studentIDToLookFor <- 0
 
-MGDBDataSubsetter$setQuery(paste(
+MGDBDatasetQuerier$setQuery(paste(
   "select DISTINCT(student_id), AVG(score), class_id
 from mongoDBDataset
 where student_id =",studentIDToLookFor, "
 group by class_id;", sep =""))
 
-averageGradesForAStudentAcrossAllOfTheirClasses <- MGDBDataSubsetter$returnQueryResult(c("student_id", "average_score", "class_id"))
+averageGradesForAStudentAcrossAllOfTheirClasses <- MGDBDatasetQuerier$returnQueryResult(c("student_id", "average_score", "class_id"))
 # view(averageGradesForAStudentAcrossAllOfTheirClasses)
 
 classesStudentWasIn <- MGDBDataCleaner$putVectorIntoASingleLineWithQuotationMarksBetweenEachTerm(averageGradesForAStudentAcrossAllOfTheirClasses$class_id)
 
-MGDBDataSubsetter$setQuery(
+MGDBDatasetQuerier$setQuery(
   paste(
     "select DISTINCT(student_id), AVG(score), class_id
 from mongoDBDataset
@@ -86,7 +86,7 @@ GROUP BY student_id;",
   )
 )
 
-averageGradesForStudentsInSameClassesAsExceptionExceptException <- MGDBDataSubsetter$returnQueryResult(c("student_id", "average_score", "class_id"))
+averageGradesForStudentsInSameClassesAsExceptionExceptException <- MGDBDatasetQuerier$returnQueryResult(c("student_id", "average_score", "class_id"))
 #view(averageGradesForStudentsInSameClassesAsExceptionExceptException)
 averageGradesForStudentsInSameClassesAsExceptionIncludingException <- merge(x = averageGradesForAStudentAcrossAllOfTheirClasses, y = averageGradesForStudentsInSameClassesAsExceptionExceptException, all = TRUE)
 # view(averageGradesForStudentsInSameClassesAsExceptionIncludingException)

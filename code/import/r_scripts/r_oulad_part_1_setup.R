@@ -9,7 +9,7 @@ OULADDataVisualizer <- DataVisualizer$new()
 OULADDataModeler <- DataModeler$new()
 OULADDataSupersetter <- DataSupersetter$new()
 OULADDataChecker <- DataChecker$new()
-OULADDataSubsetter <- DataSubsetter$new()
+OULADDatasetQuerier <- DatasetQuerier$new()
 OULADDataExporter <- DataExporter$new()
 # --
 
