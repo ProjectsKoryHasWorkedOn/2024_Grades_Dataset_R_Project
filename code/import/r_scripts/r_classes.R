@@ -559,6 +559,10 @@ DataChecker <- R6Class(
       private$dataset <- df
     },
     
+    getDataTypesOfDataset = function(){
+      str(private$dataset)
+    },
+    
     calculateNumberOfColumns = function() {
       private$numberOfColumns = ncol(private$dataset)
     },

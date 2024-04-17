@@ -135,6 +135,14 @@ studentModulePresentationGradeTable$grade = factor(
 )
 # --
 
+# -- Indicate the ordering of the education levels so they're in order when graphing them
+studentCourseAssessmentInfoTables$student_highest_education_level_on_entry_to_the_module = factor(
+  studentCourseAssessmentInfoTables$student_highest_education_level_on_entry_to_the_module,
+  levels = c("No recognized qualifications", "Lower Than A Level", "A Level or Equivalent", "HE Qualification", "Post Graduate Qualification")
+)
+
+# --
+
 
 # get total times student interacted with the learning material
 learningMaterialSubset1Expression <-

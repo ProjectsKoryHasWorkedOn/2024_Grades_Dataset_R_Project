@@ -34,10 +34,19 @@ OULADDataCleaner$setDataset(studentInfoTable)
 OULADDataCleaner$replaceValuesEqualToXWithAValue(8, '55<=', ">55")
 studentInfoTable <- OULADDataCleaner$returnDataset()
 
+# Handle poorly entered qualification levels
+OULADDataCleaner$setDataset(studentInfoTable)
+OULADDataCleaner$replaceValuesEqualToXWithAValue(6, 'No Formal quals', "No recognized qualifications")
+studentInfoTable <- OULADDataCleaner$returnDataset()
+
 # Handle wrongly entered IMD band value ('10-20' value is missing a % sign, it should be '10-20%')
 OULADDataCleaner$setDataset(studentInfoTable)
 OULADDataCleaner$replaceValuesEqualToXWithAValue(7, '10-20', "10-20%")
 studentInfoTable <- OULADDataCleaner$returnDataset()
+
+
+
+
 
 # Handle missing IMD band values
 OULADDataChecker$setDataset(studentInfoTable)
@@ -293,6 +302,7 @@ OULADDataCleaner$setDataset(VLETable)
 OULADDataCleaner$removeJunkColumns(c(5, 6))
 VLETable <- OULADDataCleaner$returnDataset()
 # --
+
 
 # -- Merge a number of the tables together
 # Wasn't able to merge VLETable and StudentVLETables - Wasn't finishing this operation in a reasonable time on one's laptop
@@ -647,7 +657,24 @@ studentModulePresentationGradeTable <- addAGradeColumnBasedOnTheNewAssessmentWei
 OULADDataCleaner$setDataset(studentModulePresentationGradeTable)
 OULADDataCleaner$removeJunkColumns(c(2, 3, 5, 6, 7, 8, 9))
 studentModulePresentationGradeTable <- OULADDataCleaner$returnDataset()
+
+# -- Creation of a new column that converts the grade to it's numerical equivalent
+studentModulePresentationGradeTable <-
+  studentModulePresentationGradeTable %>%
+  mutate(numerical_grade_equivalent = (
+    grade = case_when(
+      grade == "HD" ~ 7,
+      grade == "D" ~ 6,
+      grade == "Cr" ~ 5,
+      grade == "P" ~ 4,
+      grade == "F" ~ 1.5,
+      grade == "WF" ~ NA
+    )
+  ),
+  .after = grade)
 # --
+# --
+
 
 # -- Add a new column to the table
 studentVLETable$master_id <- seq.int(nrow(studentVLETable))
