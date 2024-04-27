@@ -24,6 +24,12 @@ MGDBDataChecker$calculateNumberOfRowsWithUniqueValues()
 MGDBDataChecker$calculateNumberOfRowsWithNonUniqueValues()
 MGDBDataChecker$setNamesOfRowsForNumberOfRowsVectors()
 MGDBDataChecker$calculateNumberOfMissingValues()
+MGDBDataChecker$checkForDuplicateValues(1)
+export_01_0002 <- MGDBDataChecker$returnIfDuplicateValuesWereFound()
+
+MGDBDataChecker$checkForDuplicateValues(5)
+export_01_0003 <- MGDBDataChecker$returnIfDuplicateValuesWereFound()
+
 # --
 
 # -- Data analysis
@@ -41,6 +47,7 @@ MGDBDataAnalyzer$calculateStandardDeviation(mongoDBDataset$score)
 
 # -- Data checking exports
 export_01_0001 <- MGDBDataChecker$returnNumberOfMissingValues()
+
 export_02_0001 <- MGDBDataChecker$returnNumberOfRowsWithNonUniqueValues()
 export_02_0002 <- MGDBDataChecker$returnNumberOfRowsWithUniqueValues()
 # --
@@ -57,7 +64,7 @@ export_03_0007 <- MGDBDataAnalyzer$returnStandardDeviation()
 # --
 
 # -- Data visualization exports
-MGDBDataVisualizer$setDataset(mongoDBDataset)
+# MGDBDataVisualizer$setDataset(mongoDBDataset)
 export_04_0001 <- MGDBDataVisualizer$graphHistogram(round(mongoDBDataset$score), 200, c("firebrick", "red", "green", "forestgreen"), "Where students scores lie", "Student scores", "density", 0.15)
 # --
 
@@ -170,7 +177,6 @@ MGDBDataVisualizer$calculateInvertedColors(5, colorsUsedForBars)
 colorsToUseForLabels <- MGDBDataVisualizer$returnColorsFound()
 
 export_06_0001 <- ggplot(mongoDBDataset, aes(x = grade, fill = grade))  + scale_fill_manual("Grades", values = c(colorsToUseForBars)) + geom_bar() + labs( x = "Grade students received", y = "Count", title ="How students fared with the assessments") + geom_text(stat='count', aes(label=..count..), color = colorsToUseForLabels, vjust = "inward") 
-
 
 
 subsetOfMongoDBDatasetForAFewClasses <- mongoDBDataset %>% filter(class_id %in% c(149, 350))

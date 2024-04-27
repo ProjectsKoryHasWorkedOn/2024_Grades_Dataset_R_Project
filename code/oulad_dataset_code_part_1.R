@@ -44,10 +44,6 @@ OULADDataCleaner$setDataset(studentInfoTable)
 OULADDataCleaner$replaceValuesEqualToXWithAValue(7, '10-20', "10-20%")
 studentInfoTable <- OULADDataCleaner$returnDataset()
 
-
-
-
-
 # Handle missing IMD band values
 OULADDataChecker$setDataset(studentInfoTable)
 OULADDataChecker$calculateWhatUniqueValuesWeHaveInAColumn(7)
@@ -189,22 +185,17 @@ returnMostCommonIMDValuesForAListOfRegions <-
   }
 
 # Get just the studentInfoTable with the columns of interest to us
+OULADDataSubsetter$setDataset(studentInfoTable)
+OULADDataSubsetter$getSubsetOfDataset(c(3, 5, 7))
 subsetOfStudentInfoTable <-
-  select(
-    studentInfoTable,
-    student_id,
-    region_student_lived_in_while_taking_the_module,
-    index_of_multiple_deprivation_for_a_uk_region
-  )
+  OULADDataSubsetter$returnSubsetOfDataset()
+
 
 # Get just the subsetOfStudentInfoTable with the regions that have missing values for the IMD value
+OULADDataSubsetter$setDataset(subsetOfStudentInfoTable)
+OULADDataSubsetter$getSubsetOfDatasetWithMissingColumns(3)
 whichRegionsHaveAMissingValue <-
-  subset(
-    subsetOfStudentInfoTable,
-    is.na(
-      subsetOfStudentInfoTable$index_of_multiple_deprivation_for_a_uk_region
-    )
-  )
+  OULADDataSubsetter$returnSubsetOfDataset()
 
 # Get the names of the regions that have missing values for the IMD value
 OULADDataChecker$setDataset(whichRegionsHaveAMissingValue)
@@ -225,14 +216,10 @@ mostCommonOnes <-
 names(mostCommonOnes) <- whatAreTheNamesOfTheseRegions[[1]]
 
 # Replace missing IMD values with the name of the region
+OULADDataCleaner$setDataset(subsetOfStudentInfoTable)
+OULADDataCleaner$replaceValueIfMissingWithAValueIfNotMissingKeepValue(3, 2)
 subsetOfStudentInfoTable$index_of_multiple_deprivation_for_a_uk_region <-
-  ifelse(
-    is.na(
-      subsetOfStudentInfoTable$index_of_multiple_deprivation_for_a_uk_region
-    ),
-    subsetOfStudentInfoTable$region_student_lived_in_while_taking_the_module,
-    subsetOfStudentInfoTable$index_of_multiple_deprivation_for_a_uk_region
-  )
+  OULADDataCleaner$returnReplacementColumn()
 
 # Replace the names of the region with the most common IMD value in that region
 for (i in 1:nrow(subsetOfStudentInfoTable)) {
@@ -256,24 +243,16 @@ studentInfoTable$index_of_multiple_deprivation_for_a_uk_region <-
 # -- Cleanup operations for the studentRegistrationTable in the OULAD database
 # Clarify that if the date the student unregistered field is empty then this means that
 # either the student is still in the course or has completed the course
+OULADDataCleaner$setDataset(studentRegistrationTable)
+OULADDataCleaner$replaceMissingValueWithAValueReworked(5, "In/Completed course")
 studentRegistrationTable$student_days_it_took_them_to_unregister_relative_to_the_module_starting_day <-
-  replace(
-    studentRegistrationTable$student_days_it_took_them_to_unregister_relative_to_the_module_starting_day,
-    is.na(
-      studentRegistrationTable$student_days_it_took_them_to_unregister_relative_to_the_module_starting_day
-    ),
-    "In/Completed course"
-  )
+  OULADDataCleaner$returnReplacementColumn()
 
 # Make it so if the day the student registered into the course is missing, it is on the day the course started
+OULADDataCleaner$setDataset(studentRegistrationTable)
+OULADDataCleaner$replaceMissingValueWithAValueReworked(4, 0)
 studentRegistrationTable$student_days_it_took_them_to_register_relative_to_the_module_starting_day <-
-  replace(
-    studentRegistrationTable$student_days_it_took_them_to_register_relative_to_the_module_starting_day,
-    is.na(
-      studentRegistrationTable$student_days_it_took_them_to_register_relative_to_the_module_starting_day
-    ),
-    0
-  )
+  OULADDataCleaner$returnReplacementColumn()
 # --
 
 # -- Data checking
@@ -314,44 +293,42 @@ mergedAssessmentTableAndStudentAssessmentTable <-
   OULADDataSupersetter$mergeTwoTables("assessment_id")
 
 # Merge student assessment table + assessments + student registration table
+OULADDataSupersetter$setDataset(mergedAssessmentTableAndStudentAssessmentTable)
+OULADDataSupersetter$setSecondDataset(studentRegistrationTable)
 mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTable <-
-  merge(
-    x = mergedAssessmentTableAndStudentAssessmentTable,
-    y = studentRegistrationTable,
-    by.x = c("student_id", "module_id", "presentation_id"),
-    by.y = c("student_id", "module_id", "presentation_id")
+  OULADDataSupersetter$mergeTwoTablesSharedIDs(
+    c("student_id", "module_id", "presentation_id"),
+    c("student_id", "module_id", "presentation_id")
   )
 
 # Merge student assessment table + assessments + student registration + student info table
+OULADDataSupersetter$setDataset(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTable)
+OULADDataSupersetter$setSecondDataset(studentInfoTable)
 mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoTable <-
-  merge(
-    x = mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTable,
-    y = studentInfoTable,
-    by.x = c("student_id", "module_id", "presentation_id"),
-    by.y = c("student_id", "module_id", "presentation_id")
+  OULADDataSupersetter$mergeTwoTablesSharedIDs(
+    c("student_id", "module_id", "presentation_id"),
+    c("student_id", "module_id", "presentation_id")
   )
 
+
 # Merge student assessment table + assessments + student registration + student info + courses table
+OULADDataSupersetter$setDataset(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoTable)
+OULADDataSupersetter$setSecondDataset(coursesTable)
 mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <-
-  merge(
-    x = mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoTable,
-    y = coursesTable,
-    by.x = c("module_id", "presentation_id"),
-    by.y = c("module_id", "presentation_id")
+  OULADDataSupersetter$mergeTwoTablesSharedIDs(
+    c("module_id", "presentation_id"),
+    c("module_id", "presentation_id")
   )
+# view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
 # --
 
 # -- Cleanup operations for the mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable
-# Handle missing exam due dates. The end of the last week of the course is the last day of the course. 
+# Handle missing exam due dates. The end of the last week of the course is the last day of the course.
 # The start of the last week of the course would be days in course - 7
-mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable$assessment_days_since_the_module_began_due_date <-
-  ifelse(
-    is.na(
-      mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable$assessment_days_since_the_module_began_due_date
-    ),
-    mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable$module_days_it_goes_for,
-    mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable$assessment_days_since_the_module_began_due_date
-  )
+
+OULADDataCleaner$setDataset(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
+OULADDataCleaner$replaceValueIfMissingWithAValueIfNotMissingKeepValue(9, 22)
+mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable$assessment_days_since_the_module_began_due_date <- OULADDataCleaner$returnReplacementColumn()
 # --
 
 # -- Data checking
@@ -372,39 +349,43 @@ output <-
 numberOfRowsThatShare4IDS <- nrow(output)
 # --
 
-# -- Work out whether the original weighted value even adds up to 100 
-expression <-
-"SELECT 
-  module_id, 
-  presentation_id, 
-  student_id, 
+# -- Work out whether the original weighted value even adds up to 100
+OULADDatasetQuerier$setQuery("SELECT
+  module_id,
+  presentation_id,
+  student_id,
   SUM(assessment_weight) AS 'sum_assessment_weight',
-  CASE 
-    WHEN SUM(assessment_weight) != 0 THEN (100 / SUM(assessment_weight)) 
+  CASE
+    WHEN SUM(assessment_weight) != 0 THEN (100 / SUM(assessment_weight))
   END 'non_zero_weighting_sum_scale_assessment_weightings_by_this_value',
   CASE
     WHEN SUM(assessment_weight) == 0 THEN COUNT(assessment_weight)
   END 'zero_weighting_sum_number_of_assessments_hundred_divide_by_this_value_for_each_assessment'
-FROM 
+FROM
   mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable
-WHERE 
+WHERE
   assessment_type NOT LIKE '%Exam%'
-GROUP BY 
-  module_id, 
-  presentation_id, 
-  student_id"
+GROUP BY
+  module_id,
+  presentation_id,
+  student_id")
 
 
-checkingAssessmentWeights <- sqldf(expression)
-
+checkingAssessmentWeights <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+view(checkingAssessmentWeights)
 
 # -- Putting this alongside the original table
-mergingAndFixing <- merge(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable, 
-      checkingAssessmentWeights, by = c("module_id","presentation_id", "student_id"),all = T)
+mergingAndFixing <-
+  merge(
+    mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable,
+    checkingAssessmentWeights,
+    by = c("module_id", "presentation_id", "student_id"),
+    all = T
+  )
 # view(mergingAndFixing)
 
-expression <- 
-"SELECT 
+
+OULADDatasetQuerier$setQuery("SELECT
   module_id,
   presentation_id,
   student_id,
@@ -415,64 +396,56 @@ expression <-
   sum_assessment_weight,
   non_zero_weighting_sum_scale_assessment_weightings_by_this_value,
   zero_weighting_sum_number_of_assessments_hundred_divide_by_this_value_for_each_assessment
-FROM 
-  mergingAndFixing"
+FROM
+  mergingAndFixing")
 
-checkingThisOut <- sqldf(expression)
+checkingThisOut <- OULADDatasetQuerier$returnQueryResultKeepColNames()
 # view(checkingThisOut)
 # --
 
 # -- Creation of a new column that determines the weighted score
 hopingThisWorks <-
   checkingThisOut %>%
-  mutate(new_assessment_weight = (
-    sum_assessment_weight = case_when(
-      assessment_type != "Exam" & sum_assessment_weight == 0 ~ 100 / zero_weighting_sum_number_of_assessments_hundred_divide_by_this_value_for_each_assessment,
-      assessment_type != "Exam" & sum_assessment_weight != 0 ~ assessment_weight * non_zero_weighting_sum_scale_assessment_weightings_by_this_value,
-      assessment_type == "Exam" ~ assessment_weight
+  mutate(
+    new_assessment_weight = (
+      sum_assessment_weight = case_when(
+        assessment_type != "Exam" &
+          sum_assessment_weight == 0 ~ 100 / zero_weighting_sum_number_of_assessments_hundred_divide_by_this_value_for_each_assessment,
+        assessment_type != "Exam" &
+          sum_assessment_weight != 0 ~ assessment_weight * non_zero_weighting_sum_scale_assessment_weightings_by_this_value,
+        assessment_type == "Exam" ~ assessment_weight
       )
-  ),
-  .after = assessment_weight)
+    ),
+    .after = assessment_weight
+  )
 # --
 hopingThisWorks <- arrange(hopingThisWorks, student_id)
 # view(hopingThisWorks)
 
-
-# -- Replacing the assessment_weight column with our new calculations for it....
-# huh <- anti_join(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable, hopingThisWorks)
-# view(huh)
-
 # -- Removing junk columns
 OULADDataCleaner$setDataset(hopingThisWorks)
-OULADDataCleaner$removeJunkColumns(c(5,6,7,9,10,11))
+OULADDataCleaner$removeJunkColumns(c(5, 6, 7, 9, 10, 11))
 hopingThisWorks <- OULADDataCleaner$returnDataset()
 # view(hopingThisWorks)
 # -- Merging, it's right now
 
-mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <- merge(
-mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable, 
-hopingThisWorks, 
-by = c("module_id","presentation_id", "student_id", "assessment_id"),all = T)
+mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <-
+  merge(
+    mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable,
+    hopingThisWorks,
+    by = c("module_id", "presentation_id", "student_id", "assessment_id"),
+    all = T
+  )
 # view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
-
-# This was wrong or it at least put it in the wrong order!
-#mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <- arrange(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable, student_id)
-#mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable$new_assessment_weight <- hopingThisWorks$new_assessment_weight
-#view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
-# --
-
-
-# ---
-# Changed from here onwards
-# assessment_weight -> new_assessment_weight
-# ---
 
 # -- Creation of a new column that determines the weighted score
 mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <-
   mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable %>%
   mutate(weighted_score = ((student_score * new_assessment_weight) / 100),
          .after = new_assessment_weight)
-view(mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable)
+view(
+  mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable
+)
 # --
 
 # -- Creation of a new column that contains the difference between the due date and when the student handed in the assignment
@@ -525,27 +498,29 @@ addColumnForNewWeightedScoresOfAssessments <-
 # - The sum of the weighted scores for each module
 # - If student has finished the course
 # - If student has taken an exam
-expression <-
-  'SELECT 
-    student_id, 
-    module_id, 
-    presentation_id, 
-    number_of_credits_the_module_is_worth, 
-    SUM(weighted_score) 
-      AS sum_weighted_score, 
-    SUM(weighted_score_exam_and_other_assessments_done) 
-      AS sum_weighted_score_exam_and_other_assessments_done, 
-    SUM(CASE WHEN assessment_type LIKE \'%Exam%\' THEN 1 ELSE 0 END) 
-      AS has_student_taken_an_exam, 
-    case when student_final_result_for_the_module LIKE \'%Withdrawn%\' then \'No\' 
+OULADDatasetQuerier$setQuery('SELECT
+    student_id,
+    module_id,
+    presentation_id,
+    number_of_credits_the_module_is_worth,
+    SUM(weighted_score)
+      AS sum_weighted_score,
+    SUM(weighted_score_exam_and_other_assessments_done)
+      AS sum_weighted_score_exam_and_other_assessments_done,
+    SUM(CASE WHEN assessment_type LIKE \'%Exam%\' THEN 1 ELSE 0 END)
+      AS has_student_taken_an_exam,
+    case when student_final_result_for_the_module LIKE \'%Withdrawn%\' then \'No\'
       else \'Yes\' end did_student_finish_the_course
-  FROM 
-      addColumnForNewWeightedScoresOfAssessments 
-  GROUP BY student_id, module_id, presentation_id'
+  FROM
+      addColumnForNewWeightedScoresOfAssessments
+  GROUP BY student_id, module_id, presentation_id')
 
 workOutTheSumOfTheWeightedScoresAndIfStudentHasTakenAnExamAndIfStudentHasFinishedTheCourse <-
-  sqldf(expression)
-view(workOutTheSumOfTheWeightedScoresAndIfStudentHasTakenAnExamAndIfStudentHasFinishedTheCourse)
+  OULADDatasetQuerier$returnQueryResultKeepColNames()
+
+view(
+  workOutTheSumOfTheWeightedScoresAndIfStudentHasTakenAnExamAndIfStudentHasFinishedTheCourse
+)
 
 # -- Creation of a new column for the grade a student gets
 # - Considering if they withdrew from the course or not
@@ -583,8 +558,12 @@ addAGradeColumnBasedOnTheNewAssessmentWeighting <-
 view(addAGradeColumnBasedOnTheNewAssessmentWeighting)
 
 # -- Creation of a new column that groups the module ID with the presentation ID
-addAGradeColumnBasedOnTheNewAssessmentWeighting <- addAGradeColumnBasedOnTheNewAssessmentWeighting %>%
-  mutate(group_ids_together = paste(module_id, presentation_id, sep = ", "), .after = presentation_id) 
+addAGradeColumnBasedOnTheNewAssessmentWeighting <-
+  addAGradeColumnBasedOnTheNewAssessmentWeighting %>%
+  mutate(
+    group_ids_together = paste(module_id, presentation_id, sep = ", "),
+    .after = presentation_id
+  )
 # --
 
 # -- Creation of a new column that converts the grade to it's numerical equivalent
@@ -604,41 +583,43 @@ addNumericalEquivalentToGradeColumn <-
 # --
 
 # -- Creation of a new column that works out the grade points
-expression <-
-  'SELECT 
+OULADDatasetQuerier$setQuery(
+  'SELECT
     student_id,
     group_ids_together,
-    (numerical_grade_equivalent * number_of_credits_the_module_is_worth) 
-      AS grade_points, 
-    SUM(number_of_credits_the_module_is_worth) 
+    (numerical_grade_equivalent * number_of_credits_the_module_is_worth)
+      AS grade_points,
+    SUM(number_of_credits_the_module_is_worth)
       AS course_credits
-  FROM 
-    addNumericalEquivalentToGradeColumn 
-  GROUP BY student_id, group_ids_together'
+  FROM
+    addNumericalEquivalentToGradeColumn
+  GROUP BY student_id, group_ids_together')
 
-workOutTheGP <- sqldf(expression)
+workOutTheGP <- OULADDatasetQuerier$returnQueryResultKeepColNames()
 # --
 
 # -- Creation of the new column that works out the cumulative GPA
-expression <-
-  'SELECT 
-    student_id, 
-    ROUND(SUM(grade_points) / SUM(course_credits), 2) 
+OULADDatasetQuerier$setQuery(
+  'SELECT
+    student_id,
+    ROUND(SUM(grade_points) / SUM(course_credits), 2)
       AS cumulative_gpa
-  FROM 
-    workOutTheGP 
-  GROUP BY student_id'
+  FROM
+    workOutTheGP
+  GROUP BY student_id')
 
-workOutTheCGPA <- sqldf(expression)
+workOutTheCGPA <- OULADDatasetQuerier$returnQueryResultKeepColNames()
 # --
 
-# -- Merging of the OG table with the new grades that student got for the module 
-subsetOfAddAGradeColumnBasedOnTheNewAssessmentWeighting <- addAGradeColumnBasedOnTheNewAssessmentWeighting
+# -- Merging of the OG table with the new grades that student got for the module
+subsetOfAddAGradeColumnBasedOnTheNewAssessmentWeighting <-
+  addAGradeColumnBasedOnTheNewAssessmentWeighting
 
 OULADDataCleaner$setDataset(subsetOfAddAGradeColumnBasedOnTheNewAssessmentWeighting)
-OULADDataCleaner$removeJunkColumns(c(4,5,6,7))
+OULADDataCleaner$removeJunkColumns(c(4, 5, 6, 7))
 
-subsetOfAddAGradeColumnBasedOnTheNewAssessmentWeighting <- OULADDataCleaner$returnDataset()
+subsetOfAddAGradeColumnBasedOnTheNewAssessmentWeighting <-
+  OULADDataCleaner$returnDataset()
 
 mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStudentInfoAndCoursesTable <-
   left_join(
@@ -653,10 +634,12 @@ mergedAssessmentTableAndStudentAssessmentTableAndStudentRegistrationTableAndStud
 # --
 
 # -- Prepare a mini-table for exporting
-studentModulePresentationGradeTable <- addAGradeColumnBasedOnTheNewAssessmentWeighting
+studentModulePresentationGradeTable <-
+  addAGradeColumnBasedOnTheNewAssessmentWeighting
 OULADDataCleaner$setDataset(studentModulePresentationGradeTable)
 OULADDataCleaner$removeJunkColumns(c(2, 3, 5, 6, 7, 8, 9))
-studentModulePresentationGradeTable <- OULADDataCleaner$returnDataset()
+studentModulePresentationGradeTable <-
+  OULADDataCleaner$returnDataset()
 
 # -- Creation of a new column that converts the grade to it's numerical equivalent
 studentModulePresentationGradeTable <-
@@ -687,55 +670,68 @@ studentVLETable <- studentVLETable %>%
 # -- Splitting this stupidly large table with 10655280 lines into eight parts
 sprintf("Number of lines in full data set: %s", nrow(studentVLETable))
 
-firstSplitExpression <- "
+OULADDatasetQuerier$setQuery("
 SELECT *
 FROM studentVLETable
-WHERE master_id BETWEEN 1 AND 1331910"
+WHERE master_id BETWEEN 1 AND 1331910")
 
-secondSplitExpression <- "
+firstSubsetOfStudentVLETTable <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+
+OULADDatasetQuerier$setQuery("
 SELECT *
 FROM studentVLETable
-WHERE master_id BETWEEN 1331911 AND 2663821"
+WHERE master_id BETWEEN 1331911 AND 2663821")
 
-thirdSplitExpression <- "
+
+secondSubsetOfStudentVLETTable <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+
+OULADDatasetQuerier$setQuery("
 SELECT *
 FROM studentVLETable
-WHERE master_id BETWEEN 2663822 AND 3995732"
+WHERE master_id BETWEEN 2663822 AND 3995732")
 
-fourthSplitExpression <- "
+
+thirdSubsetOfStudentVLETTable <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+
+OULADDatasetQuerier$setQuery("
 SELECT *
 FROM studentVLETable
-WHERE master_id BETWEEN 3995733 AND 5327643"
+WHERE master_id BETWEEN 3995733 AND 5327643")
 
 
-fifthSplitExpression <- "
+fourthSubsetOfStudentVLETTable <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+
+OULADDatasetQuerier$setQuery("
 SELECT *
 FROM studentVLETable
-WHERE master_id BETWEEN 5327644 AND 6659554"
+WHERE master_id BETWEEN 5327644 AND 6659554")
 
-sixthSplitExpression <- "
+
+fifthSubsetOfStudentVLETTable <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+
+OULADDatasetQuerier$setQuery("
 SELECT *
 FROM studentVLETable
-WHERE master_id BETWEEN 6659555 AND 7991465"
+WHERE master_id BETWEEN 6659555 AND 7991465")
 
-seventhSplitExpression <- "
+
+sixthSubsetOfStudentVLETTable <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+
+OULADDatasetQuerier$setQuery("
 SELECT *
 FROM studentVLETable
-WHERE master_id BETWEEN 7991466 AND 9323376"
+WHERE master_id BETWEEN 7991466 AND 9323376")
 
-eighthSplitExpression <- "
+
+seventhSubsetOfStudentVLETTable <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+
+OULADDatasetQuerier$setQuery("
 SELECT *
 FROM studentVLETable
-WHERE master_id BETWEEN 9323377 AND 10655280"
+WHERE master_id BETWEEN 9323377 AND 10655280")
 
-firstSubsetOfStudentVLETTable <- sqldf(firstSplitExpression)
-secondSubsetOfStudentVLETTable <- sqldf(secondSplitExpression)
-thirdSubsetOfStudentVLETTable <- sqldf(thirdSplitExpression)
-fourthSubsetOfStudentVLETTable <- sqldf(fourthSplitExpression)
-fifthSubsetOfStudentVLETTable <- sqldf(fifthSplitExpression)
-sixthSubsetOfStudentVLETTable <- sqldf(sixthSplitExpression)
-seventhSubsetOfStudentVLETTable <- sqldf(seventhSplitExpression)
-eighthSubsetOfStudentVLETTable <- sqldf(eighthSplitExpression)
+
+eighthSubsetOfStudentVLETTable <- OULADDatasetQuerier$returnQueryResultKeepColNames()
 # --
 
 # -- Write these new files to CSV files

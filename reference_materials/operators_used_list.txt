@@ -1,0 +1,23 @@
+%in%
+<-
+%>%
+=
+==
+>
+<
+>=
+<=
+~
+*
+-
+!=
+/
+SQL BETWEEN
+SQL AND
+SQL LIKE
+SQL NOT LIKE
+SQL IN
++
+*-
+|>
+!

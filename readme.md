@@ -11,30 +11,8 @@ Note that v4.3.2 and v.4.4.0 does not work with one's libraries
 
 https://posit.co/download/rstudio-desktop/
 
-# Troubleshooting steps that worked for me when one's working code stopped working
+# Files used to help make the final report
+`mongodb_dataset_code.R` => `mongodb_dataset_code_exports_for_report.Rmd`
 
-Fix A:
-
-1. Delete .Rhistory file
-1. Delete .Rdata file
-1. Reload the session
-
-Fix B:
-
-1. Option > Tools > Untick "Restore .RData into workplace at startup"
-
-
-# Files used to help make the final report, which can be found in `documentation > r_project_report`
-
-`mongodb_dataset_code.R`, `mongodb_dataset_report.Rmd`
-* Covers data wrangling, transformation, analysis, and modelling
-* Leads to the creation of a report via the R markdown file that speaks about some of the decisions I made when working with the MongoDB dataset
-
-`oulad_dataset_code_part_1.R`, `oulad_dataset_code_part_1_report.Rmd`
-* Covers data wrangling and data transformation
-* Leads to the creation of some new .CSV files that I load into ''oulad_dataset_code_part_2.R'' from the ''import/csv_after_processing'' folder
-* Leads to the creation of a report via the R markdown file that speaks about some of the decisions I made when working with the OULAD dataset
-
-`oulad_dataset_code_part_2.R`, `oulad_dataset_code_part_2_report.Rmd`
-* Covers data analysis and data modelling
-* Leads to the creation of a report via the R markdown file that speaks about some of the decisions I made when working with the OULAD dataset
+`oulad_dataset_code_part_1.R` => `oulad_dataset_code_part_1_code_exports_for_report.Rmd`
+`oulad_dataset_code_part_2.R` => `oulad_dataset_code_part_2_code_exports_for_report.Rmd`

@@ -90,8 +90,31 @@ DataCleaner <- R6Class(
       colnames(private$dataset) <- c(colNamesArg)
     },
     
-    replaceMissingValueWithAValue = function(columnArg, valueToReplaceMissingValueWithArg){
+    replaceMissingValueWithAValue = function(columnArg = NA, valueToReplaceMissingValueWithArg = NA){
       private$dataset[columnArg] <- replace(private$dataset[columnArg], is.na(private$dataset[columnArg]), valueToReplaceMissingValueWithArg)
+    },
+    
+    replaceMissingValueWithAValueReworked = function(columnArg = NA, valueToReplaceMissingValueWithArg = NA){
+      private$replacementColumn <- replace(private$dataset[[columnArg]], is.na(private$dataset[[columnArg]]), valueToReplaceMissingValueWithArg)
+    },
+    
+    replaceValueIfMissingWithAValueIfNotMissingKeepValue = function(columnArgToCheckIfMissingAndReplaceIfMissing = NA, replacementColumnArg = NA){
+   
+     private$replacementColumn <-
+       ifelse(
+         is.na(
+           private$dataset[[columnArgToCheckIfMissingAndReplaceIfMissing]]
+         ),
+         private$dataset[[replacementColumnArg]],
+         private$dataset[[columnArgToCheckIfMissingAndReplaceIfMissing]]
+       )
+     
+     
+     
+     },
+    
+    returnReplacementColumn = function(){
+      return(private$replacementColumn)
     },
     
     replaceValuesEqualToXWithAValue = function(columnArg, xArg, valueToReplaceXWithArg){
@@ -122,7 +145,8 @@ DataCleaner <- R6Class(
   ),
   
   private = list(
-    dataset = NULL)
+    dataset = NULL,
+    replacementColumn = NULL)
   
 )
 
@@ -160,7 +184,9 @@ DataAnalyzer <- R6Class(
       private$ThirdQuartileCalculation <- quantile(of, 0.75)
     },
     
-    
+    calculateInterquartileRange = function(of = NA) {
+      private$interquartileRange <- IQR(of)
+    },
     
     calculateStandardDeviation = function(of = NA) {
       private$standardDeviationCalculation = sd(of)
@@ -255,6 +281,10 @@ DataAnalyzer <- R6Class(
       return(private$maximumCalculation)
     },
     
+    returnInterquartileRange = function() {
+      return(private$interquartileRange)
+    },
+    
     returnMinimum = function() {
       return(private$minimumCalculation)
     },
@@ -312,7 +342,8 @@ DataAnalyzer <- R6Class(
     ZScoreCalculation = NULL,
     meanOfGroupCalculation = NULL,
     quartileOfGroupCalculation = NULL,
-    rangeOfValues = NULL
+    rangeOfValues = NULL,
+    interquartileRange = NULL
   )
   
 )
@@ -345,9 +376,6 @@ DatasetQuerier <- R6Class(
   "DatasetQuerier",
   
   public = list(
-    setDataset = function(df = NA) {
-      private$dataset <- df
-    },
     
     setQuery = function(query = NA) {
       private$query <- query
@@ -362,18 +390,56 @@ DatasetQuerier <- R6Class(
       rownames(returnValue) <- NULL
       colnames(returnValue) <- colNamesArg
       return(returnValue)
+    },
+    
+    returnQueryResultKeepColNames = function(){
+      return(sqldf(private$query))
     }
     
     
   ),
   
-  private = list(dataset = NULL,
-                 query = NULL)
+  private = list(query = NULL)
   
 )
 
 
 
+
+
+DataSubsetter <- R6Class(
+  "DataSubsetter",
+  
+  public = list(
+    
+    setDataset = function(df = NA) {
+      private$dataset <- df
+    },
+    
+    
+    getSubsetOfDataset = function(cols = NA) {
+     private$subsetOfDataset <- select(private$dataset, c(cols))
+    },
+    
+    getSubsetOfDatasetWithMissingColumns = function(col = NA){
+      private$subsetOfDataset <- subset(
+        private$dataset, 
+        is.na(private$dataset[col])
+        )
+    },
+    
+    returnSubsetOfDataset = function(){
+      return(private$subsetOfDataset)
+    }
+    
+    
+  ),
+  
+  private = list(
+    dataset = NULL,
+    subsetOfDataset = NULL)
+  
+)
 
 
 
@@ -396,7 +462,23 @@ DataSupersetter <- R6Class(
     mergeTwoTables = function(byArg = NA){
       mergedTwoTables <- merge(private$dataset, private$secondDataset, by = byArg, all.x = TRUE)
       return(mergedTwoTables)
+    },
+
+
+    mergeTwoTablesSharedIDs = function(byXArg = NA, byYArg = NA){
+      # byXArg and byYArg arg have same ID names
+      
+      mergedTwoTables <- merge(
+          x = private$dataset,
+          y = private$secondDataset,
+          by.x = byXArg,
+          by.y = byYArg
+        )
+      
+      
+      return(mergedTwoTables)
     }
+
     
   ),
   

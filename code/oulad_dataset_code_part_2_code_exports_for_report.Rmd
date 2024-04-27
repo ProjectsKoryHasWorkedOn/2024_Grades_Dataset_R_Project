@@ -5,3 +5,118 @@ author: "Kory"
 output: word_document
 date: "2024-03-24"
 ---
+
+
+```{r setup, include=FALSE, echo=FALSE}
+source(file=paste(getwd(),"/oulad_dataset_code_part_2.R", sep="")) 
+```
+
+```{r export_intro_001, include=TRUE, echo=FALSE}
+exportTotalUniqueStudentIDs
+exportTotalUniqueAssessmentIDs
+exportTotalUniqueVLEMaterialID
+```
+
+```{r export_intro_002, include=TRUE, echo=FALSE}
+exportStudentScoresIQR
+exportStudentScoresMean
+exportStudentScoresMedian
+exportStudentScoresQ1
+exportStudentScoresQ3
+exportStudentScoresMin
+exportStudentScoresMax
+```
+
+
+```{r export_intro_003, include=TRUE, echo=FALSE}
+exportHowStudentsScoreForDifferentAssignmentTypes
+```
+
+
+```{r export_intro_004, include=TRUE, echo=FALSE}
+exportVisualizationOfNumberOfStudentsThatWithdrewVsStayed
+```
+
+
+```{r export_intro_005, include=TRUE, echo=FALSE}
+exportVisualizationOfNumberOfMenToWomen
+```
+
+
+```{r export_intro_006, include=TRUE, echo=FALSE}
+exportStudentsInTheRegionsOfEnglandVisualization
+```
+
+
+
+```{r export_intro_007, include=TRUE, echo=FALSE}
+exportStudentsInUKCountriesVisualization
+```
+
+
+```{r export_intro_008, include=TRUE, echo=FALSE}
+exportStudentScoresDistributionVisualization
+```
+
+
+
+
+```{r export_001, include=TRUE, echo=FALSE}
+exportAssessmentHandInTimesGraph
+```
+
+```{r export_003, include=TRUE, echo=FALSE}
+exportGenderStudentScoresGraph
+exportDoWomenOrMenTendToPerformBetter
+```
+
+```{r export_004, include=TRUE, echo=FALSE}
+exportDoDisabledOrNonDisabledPeopleTendToPerformBetter
+exportDisabilityStudentScoresGraph
+```
+
+```{r export_005, include=TRUE, echo=FALSE}
+exportDoOlderOrYoungerPeoplePerformBetter
+exportAgeStudentScoresGraph
+```
+
+```{r export_006, include=TRUE, echo=FALSE}
+exportDoLessImpoverishedStudentsPerformBetterOrWorse
+exportImpoverishmentStudentScoresGraph
+```
+
+```{r export_007, include=TRUE, echo=FALSE}
+exportDoMoreEducationStudentsPerformBetter
+exportHighestLevelOfQualificationStudentScoreGraph
+```
+
+```{r export_008, include=TRUE, echo=FALSE}
+exportWhichModuleAndPresentationCombinationIsEasiestAndHardest
+exportStudentGradesForTheirModuleAndPresentationsGraph
+```
+
+```{r export_009, include=TRUE, echo=FALSE}
+exportStudentCumulativeGPAGraph
+exportCountNumberOfStudentsWithHighEnoughGPAForPostGradStudies
+exportWhatPercentageOfStudentsHaveAHighEnoughGPAForPostGradStudies
+```
+
+```{r export_010, include=TRUE, echo=FALSE}
+exportNumberOfWithdrawalsByIMDBand
+```
+
+```{r export_011, include=TRUE, echo=FALSE}
+exportGPAToAverageStudentScoreLM
+```
+
+
+
+
+
+
+
+
+
+
+
+

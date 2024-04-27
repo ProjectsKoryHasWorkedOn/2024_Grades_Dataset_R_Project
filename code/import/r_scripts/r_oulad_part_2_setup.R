@@ -8,6 +8,7 @@ OULADDataViewer <- DataViewer$new()
 OULADDataVisualizer <- DataVisualizer$new()
 OULADDataModeler <- DataModeler$new()
 OULADDataSupersetter <- DataSupersetter$new()
+OULADDataSubsetter <- DataSubsetter$new()
 OULADDataChecker <- DataChecker$new()
 OULADDatasetQuerier <- DatasetQuerier$new()
 # --
@@ -145,98 +146,87 @@ studentCourseAssessmentInfoTables$student_highest_education_level_on_entry_to_th
 
 
 # get total times student interacted with the learning material
-learningMaterialSubset1Expression <-
-"SELECT 
+OULADDatasetQuerier$setQuery("SELECT 
   student_id, 
   sum(student_times_interacted_with_vle_material) AS 'sum_vle_interaction_times'
 FROM 
   subset1OfStudentVLETTable
 GROUP BY
-  student_id"
+  student_id")
 
+subset1OfStudentVLETTableSUM <- OULADDatasetQuerier$returnQueryResultKeepColNames()
 
-learningMaterialSubset2Expression <-
-  "SELECT 
+OULADDatasetQuerier$setQuery("SELECT 
   student_id, 
   sum(student_times_interacted_with_vle_material) AS 'sum_vle_interaction_times'
 FROM 
   subset2OfStudentVLETTable
 GROUP BY
-  student_id"
+  student_id")
 
-learningMaterialSubset3Expression <-
-  "SELECT 
+subset2OfStudentVLETTableSUM <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+
+OULADDatasetQuerier$setQuery("SELECT 
   student_id, 
   sum(student_times_interacted_with_vle_material) AS 'sum_vle_interaction_times'
 FROM 
   subset3OfStudentVLETTable
 GROUP BY
-  student_id"
+  student_id")
 
-learningMaterialSubset4Expression <-
-  "SELECT 
+subset3OfStudentVLETTableSUM <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+
+OULADDatasetQuerier$setQuery("SELECT 
   student_id, 
   sum(student_times_interacted_with_vle_material) AS 'sum_vle_interaction_times'
 FROM 
   subset4OfStudentVLETTable
 GROUP BY
-  student_id"
+  student_id")
 
-learningMaterialSubset5Expression <-
-  "SELECT 
+subset4OfStudentVLETTableSUM <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+
+OULADDatasetQuerier$setQuery("SELECT 
   student_id, 
   sum(student_times_interacted_with_vle_material) AS 'sum_vle_interaction_times'
 FROM 
   subset5OfStudentVLETTable
 GROUP BY
-  student_id"
+  student_id")
 
-learningMaterialSubset6Expression <-
-  "SELECT 
+subset5OfStudentVLETTableSUM <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+
+OULADDatasetQuerier$setQuery("SELECT 
   student_id, 
   sum(student_times_interacted_with_vle_material) AS 'sum_vle_interaction_times'
 FROM 
   subset6OfStudentVLETTable
 GROUP BY
-  student_id"
+  student_id")
 
-learningMaterialSubset1Expression <-
-  "SELECT 
-  student_id, 
-  sum(student_times_interacted_with_vle_material) AS 'sum_vle_interaction_times'
-FROM 
-  subset1OfStudentVLETTable
-GROUP BY
-  student_id"
+subset6OfStudentVLETTableSUM <- OULADDatasetQuerier$returnQueryResultKeepColNames()
 
-learningMaterialSubset7Expression <-
-  "SELECT 
+OULADDatasetQuerier$setQuery("SELECT 
   student_id, 
   sum(student_times_interacted_with_vle_material) AS 'sum_vle_interaction_times'
 FROM 
   subset7OfStudentVLETTable
 GROUP BY
-  student_id"
+  student_id")
+
+subset7OfStudentVLETTableSUM <- OULADDatasetQuerier$returnQueryResultKeepColNames()
 
 
-
-learningMaterialSubset8Expression <-
-  "SELECT 
+OULADDatasetQuerier$setQuery("SELECT 
   student_id, 
   sum(student_times_interacted_with_vle_material) AS 'sum_vle_interaction_times'
 FROM 
   subset8OfStudentVLETTable
 GROUP BY
-  student_id"
+  student_id")
 
-subset1OfStudentVLETTableSUM <- sqldf(learningMaterialSubset1Expression)
-subset2OfStudentVLETTableSUM <- sqldf(learningMaterialSubset2Expression)
-subset3OfStudentVLETTableSUM <- sqldf(learningMaterialSubset3Expression)
-subset4OfStudentVLETTableSUM <- sqldf(learningMaterialSubset4Expression)
-subset5OfStudentVLETTableSUM <- sqldf(learningMaterialSubset5Expression)
-subset6OfStudentVLETTableSUM <- sqldf(learningMaterialSubset6Expression)
-subset7OfStudentVLETTableSUM <- sqldf(learningMaterialSubset7Expression)
-subset8OfStudentVLETTableSUM <- sqldf(learningMaterialSubset8Expression)
+subset8OfStudentVLETTableSUM <- OULADDatasetQuerier$returnQueryResultKeepColNames()
+
 
 # -- Merging the subsets
 mergedSubsetSums <- do.call("rbind", list(
@@ -250,11 +240,11 @@ mergedSubsetSums <- do.call("rbind", list(
   subset8OfStudentVLETTableSUM
   ))
 
-expressionToMergeCommonStudentIDs <- "SELECT student_id, SUM(sum_vle_interaction_times) AS 'sum_vle_interaction_times'
+OULADDatasetQuerier$setQuery("SELECT student_id, SUM(sum_vle_interaction_times) AS 'sum_vle_interaction_times'
 FROM mergedSubsetSums
-GROUP BY student_id"
+GROUP BY student_id")
 
-fixedUpMergedSubsetSums <- sqldf(expressionToMergeCommonStudentIDs)
+fixedUpMergedSubsetSums <- OULADDatasetQuerier$returnQueryResultKeepColNames()
 
 # --
 

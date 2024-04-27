@@ -31,3 +31,8 @@ wereDuplicateVLEMaterialIDsFound
 ```{r export_005, include=TRUE, echo=FALSE}
 numberOfRowsThatShare4IDS
 ```
+
+```{r export_006, include=TRUE, echo=FALSE}
+wereMissingValuesFound
+```
+

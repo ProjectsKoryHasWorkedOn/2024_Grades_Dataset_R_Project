@@ -13,6 +13,8 @@ source(file=paste(getwd(),"/mongodb_dataset_code.R", sep=""))
 # Mongo DB dataset exports
 ```{r report_export_01, include=TRUE, echo=FALSE}
 paste("number of missing values in entire dataset: ", export_01_0001, sep = "")
+paste("is student_id a PK: ", !export_01_0002, sep = "")
+paste("is class_id a PK: ", !export_01_0003, sep = "")
 ```
 
 ```{r report_export_02, include=TRUE, echo=FALSE}
