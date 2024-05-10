@@ -106,17 +106,37 @@ exportNumberOfWithdrawalsByIMDBand
 ```
 
 ```{r export_011, include=TRUE, echo=FALSE}
-exportGPAToAverageStudentScoreLM
+exportVisualizeCorrelationBetweenCGPAAndOtherVariables
 ```
 
 
+```{r export_012, include=TRUE, echo=FALSE}
+exportGPAToAverageStudentScoreLM
+```
 
+```{r export_013, include=TRUE, echo=FALSE}
+exportGPAToHighestEducationLevelOnEntryToTheModuleLM
+```
 
+```{r export_014, include=TRUE, echo=FALSE}
+exportGPAToVLEInteractionTimesLM
+```
 
+```{r export_015, include=TRUE, echo=FALSE}
+# exportGPAToVLEInteractionTimesAndIMDBandLMWithPlusOperator
+# exportGPAToVLEInteractionTimesAndIMDBandLMWithTimesOperator
+```
 
+```{r export_016, include=TRUE, echo=FALSE}
+# exportGPAToVLEInteractionTimesAndStudentQuicknessInHandingInAssignmentsWithPlusOperator
+# exportGPAToVLEInteractionTimesAndStudentQuicknessInHandingInAssignmentsWithTimesOperator
+```
 
+```{r export_017, include=TRUE, echo=FALSE}
+# exportGPAToIMDBandAndHighestEducationLevelWithPlusOperator
+# exportGPAToIMDBandAndHighestEducationLevelWithTimesOperator
+```
 
-
-
-
-
+```{r export_018, include=TRUE, echo=FALSE}
+comparingLinearModelPerformanceBarplot
+```

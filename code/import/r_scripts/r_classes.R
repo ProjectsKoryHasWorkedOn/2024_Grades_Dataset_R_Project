@@ -90,6 +90,11 @@ DataCleaner <- R6Class(
       colnames(private$dataset) <- c(colNamesArg)
     },
     
+    returnAllRowsExceptFirstRow = function(){
+      allRowsExceptFirstOne <- tail(private$dataset,nrow(private$dataset) - 1)
+      return(allRowsExceptFirstOne)
+    },
+    
     replaceMissingValueWithAValue = function(columnArg = NA, valueToReplaceMissingValueWithArg = NA){
       private$dataset[columnArg] <- replace(private$dataset[columnArg], is.na(private$dataset[columnArg]), valueToReplaceMissingValueWithArg)
     },
@@ -622,12 +627,53 @@ DataModeler <- R6Class(
   public = list(
     setDataset = function(df = NA) {
       private$dataset <- df
+    },
+    
+    setLinearModel = function(lm = NA) {
+      private$linearModel <- lm
+    },
+    
+    extractPValue = function(){
+      fstat<-summary(private$linearModel)$fstatistic
+      pValue <- pf(fstat[1], fstat[2], fstat[3], lower.tail=FALSE)
+      return(pValue[[1]])
+    },
+    
+    
+    extractAdjustedRSquaredValue = function(){
+      return(summary(private$linearModel)$adj.r.squared)
+    },
+    
+    extractCoefficients = function(){
+      return(coef(private$linearModel))
+    },
+    
+    extractNumberOfOutliers = function(){
+      outliersFound <- car::outlierTest(private$linearModel)
+      numberOfOutliersFound <- NROW(outliersFound[[1]])
+      
+      if(is.null(numberOfOutliersFound) == TRUE){
+        return(0)
+      }
+      else{
+        return(numberOfOutliersFound)
+      }
+    },
+    
+    extractRootMeanSquareValue = function(){
+      # Approach 1 of calculating the rmse
+      # residualValues <- resid(private$linearModel) # residual values
+      # sqrt(mean(residualValues^2)) # the rmse
+      
+      # Approach 2 of calculating the rmse
+      return(modelr::rmse(private$linearModel, private$dataset))
     }
     
   ),
   
   private = list(
-    dataset = NULL)
+    dataset = NULL,
+    linearModel = NULL)
 )
 
 

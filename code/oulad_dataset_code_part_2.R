@@ -80,7 +80,7 @@ tableOfStudentIDToStudentRegion <- OULADDatasetQuerier$returnQueryResultKeepColN
 OULADDatasetQuerier$setQuery("select DISTINCT(region_student_lived_in_while_taking_the_module) AS 'region', COUNT(region_student_lived_in_while_taking_the_module) AS 'number_of_students_living_in_the_region' FROM tableOfStudentIDToStudentRegion GROUP BY region_student_lived_in_while_taking_the_module")
 
 countOfStudentsInARegion <- OULADDatasetQuerier$returnQueryResultKeepColNames()
-view(countOfStudentsInARegion)
+# view(countOfStudentsInARegion)
 
 england_region_map <- st_read(englandRegionBoundariesFilePath) 
 
@@ -336,7 +336,7 @@ exportNumberOfWithdrawalsByIMDBand <- distinctStudentIDS %>%
 
 
 
-# --
+# -- Linear modelling dataset
 OULADDatasetQuerier$setQuery("
 SELECT 
   student_id,
@@ -344,7 +344,9 @@ SELECT
   AVG(difference_between_due_date_and_hand_in_date) AS 'avg_student_quickness_at_handing_in_assignments',
   student_has_a_disability,
   index_of_multiple_deprivation_for_a_uk_region,
-  student_highest_education_level_on_entry_to_the_module
+  student_highest_education_level_on_entry_to_the_module,
+  did_student_finish_the_course,
+  gender
 FROM
   studentCourseAssessmentInfoTables
 GROUP BY student_id")
@@ -355,97 +357,207 @@ studentInfoTableForLinearModel <- merge(studentCumulativeGPAsTable, fixedUpMerge
 studentInfoTableForLinearModel <- merge(studentInfoTableForLinearModel, getStudentInformationByItself, by = "student_id")
 studentInfoTableForLinearModel <- na.omit(studentInfoTableForLinearModel)
 # view(studentInfoTableForLinearModel)
+# --
 
-# Linear models
+
+# -- Visualizing the correlation between the variables of the linear modelling dataset
+studentInfoTableForLinearModel$gender <- factor(studentInfoTableForLinearModel$gender)
+studentInfoTableForLinearModel$gender <- as.numeric(studentInfoTableForLinearModel$gender)
+
+studentInfoTableForLinearModel$student_highest_education_level_on_entry_to_the_module <- factor(
+  studentInfoTableForLinearModel$student_highest_education_level_on_entry_to_the_module,
+  levels = c("No recognized qualifications", "Lower Than A Level", "A Level or Equivalent", "HE Qualification", "Post Graduate Qualification"),
+  ordered = TRUE
+)
+studentInfoTableForLinearModel$student_highest_education_level_on_entry_to_the_module <- as.numeric(studentInfoTableForLinearModel$student_highest_education_level_on_entry_to_the_module)
+
+studentInfoTableForLinearModel$student_has_a_disability <- factor(studentInfoTableForLinearModel$student_has_a_disability)
+studentInfoTableForLinearModel$student_has_a_disability <- as.numeric(studentInfoTableForLinearModel$student_has_a_disability)
+
+studentInfoTableForLinearModel$did_student_finish_the_course <- factor(studentInfoTableForLinearModel$did_student_finish_the_course)
+studentInfoTableForLinearModel$did_student_finish_the_course <- as.numeric(studentInfoTableForLinearModel$did_student_finish_the_course)
+
+unique(studentInfoTableForLinearModel$index_of_multiple_deprivation_for_a_uk_region)
+
+studentInfoTableForLinearModel$index_of_multiple_deprivation_for_a_uk_region <- factor(
+  studentInfoTableForLinearModel$index_of_multiple_deprivation_for_a_uk_region,
+  levels = c("0-10%", "10-20%", "20-30%", "30-40%", "40-50%", "50-60%", "60-70%", "70-80%", "80-90%", "90-100%"),
+  ordered = TRUE
+)
+studentInfoTableForLinearModel$index_of_multiple_deprivation_for_a_uk_region <- as.numeric(studentInfoTableForLinearModel$index_of_multiple_deprivation_for_a_uk_region)
+
+correlationVariablesHaveWithGrades <- as.data.frame(round(cor(studentInfoTableForLinearModel)[,2], 1)) 
+colnames(correlationVariablesHaveWithGrades) <- "Correlation to cumulative GPA"
+# view(correlationVariablesHaveWithGrades)
+
+exportVisualizeCorrelationBetweenCGPAAndOtherVariables <- ggcorrplot(correlationVariablesHaveWithGrades)
+
+# -- Linear models
+
 # -- Linear model 01 - GPA (Y) to average student score (x)
 # Continuous predictor
-exportGPAToAverageStudentScoreLM <- ggplot(studentInfoTableForLinearModel, aes(x = cumulative_gpa, y = avg_student_score)) + geom_point() +  geom_smooth(color = "turquoise", method="lm") + labs(title = "GPA plotted against average score", x = "Cumulative GPA of students", y = "Average score of students") + theme_minimal()
-
 linearModel01 <- lm(cumulative_gpa ~ avg_student_score, data = studentInfoTableForLinearModel)
 summary(linearModel01)
-# Adjusted R-squared:  0.6848 
-# F-statistic: 4.328e+04 = 4.328 × 10^4 = 43,280
-# p-value: < 2.2e-16 = 0.00000000000000022
 
 
-outliersTestOutcome <- car::outlierTest(linearModel01)
-exportNumberOfOutliersForLinearModel1 <- nrow(outliersTestOutcome)
+# Create a dataframe that I'll use to make a prediction line
+linearModel01PredictionsAndResiduals <- studentInfoTableForLinearModel %>% 
+  data_grid(avg_student_score, cumulative_gpa)  %>% 
+  add_predictions(linearModel01) %>% 
+  add_residuals(linearModel01)
+ # view(linearModel01PredictionsAndResiduals)
 
-
+# Plot the data, linear regression line, prediction line
+exportGPAToAverageStudentScoreLM <- ggplot(studentInfoTableForLinearModel, aes(x = cumulative_gpa, y = avg_student_score)) + geom_point() +  geom_smooth(color = "turquoise", method="lm") + labs(title = "GPA plotted against average score", x = "Cumulative GPA of students", y = "Average score of students") + geom_line(data = linearModel01PredictionsAndResiduals, mapping = aes(x = pred, y = avg_student_score), color = "red", alpha = 0.8)  + theme_minimal() 
 # --
 
-# -- Linear model 02 - GPA (Y) to total VLE interaction times (x)
-# Continuous predictor
-linearModel02 <- lm(cumulative_gpa ~ sum_vle_interaction_times, data = studentInfoTableForLinearModel)
+
+
+# -- Linear model 02  - GPA (Y) to student_highest_education_level_on_entry_to_the_module (x)
+linearModel02 <- lm(cumulative_gpa ~  student_highest_education_level_on_entry_to_the_module, data = studentInfoTableForLinearModel)
 summary(linearModel02)
-# Adjusted R-squared: 0.0501
-# F-statistic: 1051
-# p-value: < 2.2e-16 = 0.00000000000000022
 
+predicted_cgpa_values_for_linear_model_02 <- predict(linearModel02)
+studentInfoTableForLinearModel["predicted_cgpa_from_highest_education_level_on_entry_to_the_module"] <- predicted_cgpa_values_for_linear_model_02
+studentInfoTableForLinearModel <- studentInfoTableForLinearModel %>% relocate(predicted_cgpa_from_highest_education_level_on_entry_to_the_module, .after = cumulative_gpa)
 
-outliersTestOutcome <- car::outlierTest(linearModel02)
-exportNumberOfOutliersForLinearModel2 <- nrow(outliersTestOutcome)
-
-
-
-ggplot(studentInfoTableForLinearModel, aes(x = cumulative_gpa, y = sum_vle_interaction_times)) + geom_point() +  geom_smooth(color = "turquoise", method="lm") + labs(title = "GPA plotted against use of learning material", x = "Cumulative GPA of students", y = "Times clicked the learning material") + theme_minimal()
-
-# predicted values
-predicted_cgpa_values <- predict(linearModel02)
-studentInfoTableForLinearModel["predicted_cgpa_from_learning_material_use"] <- predicted_cgpa_values
-studentInfoTableForLinearModel <- studentInfoTableForLinearModel %>% relocate(predicted_cgpa_from_learning_material_use, .after = cumulative_gpa)
-view(studentInfoTableForLinearModel)
-
-# Residual values
-residualsForLinearModel02 <- studentInfoTableForLinearModel$cumulative_gpa - predicted_cgpa_values
-residualsForLinearModel02
-
-
-# root mean squared error RMSE
-sqrt(mean(residualsForLinearModel02^2))
-
+# Plot the data, linear regression line, prediction line
+# plotted this prediction line without using a data grid
+exportGPAToHighestEducationLevelOnEntryToTheModuleLM <- ggplot(studentInfoTableForLinearModel, aes(x = cumulative_gpa, y = student_highest_education_level_on_entry_to_the_module)) + geom_point() +  geom_smooth(color = "turquoise", method="lm") + labs(title = "GPA plotted against student education level on entry to the module", x = "Cumulative GPA of students", y = "Student highest education level") + theme_minimal() + geom_line(mapping = aes(x = predicted_cgpa_from_highest_education_level_on_entry_to_the_module), color = "red", alpha = 0.8)
 # --
 
-# -- Linear model 03  - Categorical predictors
-linearModel03 <- lm(cumulative_gpa ~ student_highest_education_level_on_entry_to_the_module, data = studentInfoTableForLinearModel)
+
+# -- Linear model 03 - GPA (Y) to total VLE interaction times (x)
+# Continuous predictor
+linearModel03 <- lm(cumulative_gpa ~ sum_vle_interaction_times, data = studentInfoTableForLinearModel)
 summary(linearModel03)
-# Adjusted R-squared:  0.01262
-# F-statistic: 64.64
-# p-value < 2.2e-16: < 0.00000000000000022
 
-# predicted values
-predicted_cgpa_values <- predict(linearModel03)
+predicted_cgpa_values_for_linear_model_03 <- predict(linearModel03)
+studentInfoTableForLinearModel["predicted_cgpa_from_sum_vle_interaction_times"] <- predicted_cgpa_values_for_linear_model_03
+studentInfoTableForLinearModel <- studentInfoTableForLinearModel %>% relocate(predicted_cgpa_from_sum_vle_interaction_times, .after = cumulative_gpa)
 
-# residual values
-residualsForLinearModel03 <- resid(linearModel03)
-
-# root mean squared error RMSE
-sqrt(mean(residualsForLinearModel03^2))
+# Plot the data, linear regression line, prediction line
+# plotted this prediction line without using a data grid
+exportGPAToVLEInteractionTimesLM <- ggplot(studentInfoTableForLinearModel, aes(x = cumulative_gpa, y = sum_vle_interaction_times)) + geom_point() +  geom_smooth(color = "turquoise", method="lm") + labs(title = "GPA plotted against use of learning material", x = "Cumulative GPA of students", y = "Times clicked the learning material") + theme_minimal() + geom_line(mapping = aes(x = predicted_cgpa_from_sum_vle_interaction_times), color = "red", alpha = 0.8)
 
 # --
 
-# -- Linear model 02  - Categorical and continuous predictors
-fit3 <- lm(cumulative_gpa ~ 
-             sum_vle_interaction_times +
-           avg_student_quickness_at_handing_in_assignments +
-           student_has_a_disability +
-           index_of_multiple_deprivation_for_a_uk_region +
+
+
+
+# -- Linear model 04 & 05 - GPA (Y) to total VLE interaction times (x1) as well as IMD band (x2)
+# Continuous predictor
+linearModel04 <- lm(cumulative_gpa ~ sum_vle_interaction_times + index_of_multiple_deprivation_for_a_uk_region, data = studentInfoTableForLinearModel)
+summary(linearModel04)
+
+linearModel05 <- lm(cumulative_gpa ~ sum_vle_interaction_times * index_of_multiple_deprivation_for_a_uk_region, data = studentInfoTableForLinearModel)
+summary(linearModel05)
+
+# Visualizing these linear models
+exportGPAToVLEInteractionTimesAndIMDBandLMWithPlusOperator <- ggPredict(linearModel04,se=TRUE,interactive=TRUE)
+exportGPAToVLEInteractionTimesAndIMDBandLMWithTimesOperator <- ggPredict(linearModel05,se=TRUE,interactive=TRUE)
+
+
+# --
+
+
+
+
+
+
+
+# -- Linear model 06 & 07  - Continuous predictors
+linearModel06 <- lm(cumulative_gpa ~ 
+                      sum_vle_interaction_times +
+                      avg_student_quickness_at_handing_in_assignments, data = studentInfoTableForLinearModel)
+summary(linearModel06)
+
+linearModel07 <- lm(cumulative_gpa ~ 
+                      sum_vle_interaction_times *
+                      avg_student_quickness_at_handing_in_assignments, data = studentInfoTableForLinearModel)
+summary(linearModel07)
+
+# Visualizing these linear models
+exportGPAToVLEInteractionTimesAndStudentQuicknessInHandingInAssignmentsWithPlusOperator <- ggPredict(linearModel06,se=TRUE,interactive=TRUE)
+exportGPAToVLEInteractionTimesAndStudentQuicknessInHandingInAssignmentsWithTimesOperator <- ggPredict(linearModel07,se=TRUE,interactive=TRUE)
+
+
+# --
+
+
+# -- Linear model 08 & 09  - Categorical predictors
+linearModel08 <- lm(cumulative_gpa ~ 
+                      index_of_multiple_deprivation_for_a_uk_region +
+                      student_highest_education_level_on_entry_to_the_module, data = studentInfoTableForLinearModel)
+summary(linearModel08)
+
+linearModel09 <- lm(cumulative_gpa ~ 
+           index_of_multiple_deprivation_for_a_uk_region *
              student_highest_education_level_on_entry_to_the_module, data = studentInfoTableForLinearModel)
-summary(fit3)
+summary(linearModel09)
+# Do both models + and *
 
-# predicted values
-predicted_cpa_values <- predict(fit3)
+# Visualizing these linear models
+exportGPAToIMDBandAndHighestEducationLevelWithPlusOperator <- ggPredict(linearModel08,se=TRUE,interactive=TRUE)
+exportGPAToIMDBandAndHighestEducationLevelWithTimesOperator <- ggPredict(linearModel09,se=TRUE,interactive=TRUE)
 
-# residual values
-residualsForFit3 <- resid(fit3)
 
-# root mean squared error RMSE
-sqrt(mean(residualsForFit3^2))
 
 
 # --
 
+# -- Storing information about our linear models
+linearModelPerformance <- tibble(
+  linearModel = c(NA),
+  linearModelData = data.frame(
+    column = c("rmse", "adjusted r^2 value", "p value", "num. of outliers"),
+    columnValue = c(NA,NA,NA,NA)
+  )
+)
+# view(linearModelPerformance)
+
+# Setting the dataset all linear models work off of
+OULADDataModeler$setDataset(studentInfoTableForLinearModel)
+
+# Storing information about our first linear model
+OULADDataModeler$setLinearModel(linearModel01)
+linearModelPerformance[1] <- c(1)
+
+linearModelPerformance$linearModelData$columnValue = c(OULADDataModeler$extractRootMeanSquareValue(), OULADDataModeler$extractAdjustedRSquaredValue(), OULADDataModeler$extractPValue(), OULADDataModeler$extractNumberOfOutliers())
+# view(linearModelPerformance)
+
+# Minimize code duplication with this function
+addInformationFromAnotherLinearModel <- function (allLinearModelsData, theLinearModel, theLinearModelNumber){
+  OULADDataModeler$setLinearModel(theLinearModel)
+  
+  linearModelData <- tibble(
+    linearModel = c(theLinearModelNumber),
+    linearModelData = data.frame(
+      column = c("rmse", "adjusted r^2 value", "p value", "num. of outliers"),
+      columnValue = c(OULADDataModeler$extractRootMeanSquareValue(), OULADDataModeler$extractAdjustedRSquaredValue(), OULADDataModeler$extractPValue(), OULADDataModeler$extractNumberOfOutliers())
+    )
+  )
+  
+  allLinearModelsWithDataFromCurrentLinearModelAddedOn <- rbind(allLinearModelsData, linearModelData)
+  
+  return(allLinearModelsWithDataFromCurrentLinearModelAddedOn)
+}
 
 
-# can do a facet wrap for model with + and model with * between the terms to see the difference in plot
-# https://modelr.tidyverse.org/reference/data_grid.html
+
+# Storing information about our second to ninth linear models
+linearModelPerformance <- addInformationFromAnotherLinearModel(linearModelPerformance, linearModel02, 2)
+linearModelPerformance <- addInformationFromAnotherLinearModel(linearModelPerformance, linearModel03, 3)
+linearModelPerformance <- addInformationFromAnotherLinearModel(linearModelPerformance, linearModel04, 4)
+linearModelPerformance <- addInformationFromAnotherLinearModel(linearModelPerformance, linearModel05, 5)
+linearModelPerformance <- addInformationFromAnotherLinearModel(linearModelPerformance, linearModel06, 6)
+linearModelPerformance <- addInformationFromAnotherLinearModel(linearModelPerformance, linearModel07, 7)
+linearModelPerformance <- addInformationFromAnotherLinearModel(linearModelPerformance, linearModel08, 8)
+linearModelPerformance <- addInformationFromAnotherLinearModel(linearModelPerformance, linearModel09, 9)
+# view(linearModelPerformance)
+
+
+# -- Comparing our linear models
+comparingLinearModelPerformanceBarplot <- ggplot(data = linearModelPerformance) + 
+  geom_bar(aes(x = linearModelPerformance$linearModelData$column, y = linearModelPerformance$linearModelData$columnValue, fill = linearModelPerformance$linearModelData$column), color = "black", stat="identity") + facet_wrap(linearModelPerformance$linearModel) + labs(fill = "Measures of goodness of fit", title = "Comparing linear models", x = "Measure of goodness of fit", y = "Value")
+# --

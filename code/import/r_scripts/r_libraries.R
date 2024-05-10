@@ -98,6 +98,29 @@ if(rnaturalearthhires_not_installed == TRUE){
   devtools::install_github("ropensci/rnaturalearthhires")
 }
 
+
+modelr_package <- find.package("modelr", quiet = TRUE)
+modelr_not_installed <- is.integerOrCharacterOfLength0(modelr_package)
+if(modelr_not_installed == TRUE){
+  install.packages("modelr")
+}
+
+ggcorrplot_package <- find.package("ggcorrplot", quiet = TRUE)
+ggcorrplot_not_installed <- is.integerOrCharacterOfLength0(ggcorrplot_package)
+if(ggcorrplot_not_installed == TRUE){
+  install.packages("ggcorrplot")
+}
+
+ggiraphExtra_package <- find.package("ggiraphExtra", quiet = TRUE)
+ggiraphExtra_not_installed <- is.integerOrCharacterOfLength0(ggiraphExtra_package)
+if(ggiraphExtra_not_installed == TRUE){
+  install.packages("ggiraphExtra")
+}
+
+ 
+
+
+
 #Load in R libraries
 library(mongolite)
 library(tidyverse) # contains ggplot, etc.
@@ -109,3 +132,6 @@ library(ggrepel)
 library(waffle)
 library(sf)
 library(rnaturalearth) 
+library(modelr)
+library(ggcorrplot)
+library(ggiraphExtra)
